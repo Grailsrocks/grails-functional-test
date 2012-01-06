@@ -1,63 +1,16 @@
 package com.grailsrocks.functionaltest
+ 
+import com.grailsrocks.functionaltest.client.APIClient
 
 /**
  * Test client that uses RESTClient
  */
 class APITestCase extends TestCaseBase {
-    
-    def getRequestConfig() {
-        
+    Class getDefaultClientType() {
+        APIClient
     }
     
-    void clientChanged() {
-        
-    }
-    
-    void request(URL url, String method, Closure setupDSL) {
-        
-    }
-    
-    Map getRequestHeaders() {
-        
-    }
-    
-    Map getRequestParameters() {
-        
-    }
-    
-    int getResponseStatus() {
-        
-    }
-    
-    String getResponseAsString() {
-        
-    }
-    
-    def getResponseDOM() {
-        
-    }
-    
-    String getResponseContentType() {
-        
-    }
-    
-    String getResponseHeader(String name) {
-        
-    }
-    
-    Map getResponseHeaders() {
-        
-    }
-    
-    String getCurrentURL() {
-        
-    }
-    
-    String getRedirectURL() {
-        
-    }
-    
-    String followRedirect()  {
-        
-    }   
+	def head(url, Closure paramSetup = null) {
+	    client.request(new URL(url), 'HEAD', paramSetup)
+	}
 }

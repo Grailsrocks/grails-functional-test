@@ -35,7 +35,7 @@ import junit.framework.AssertionFailedError
 
 import com.grailsrocks.functionaltest.client.*
 
-class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, ClientListener {
+class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, ClientAdapter {
 
     static MONKEYING_DONE
     
@@ -75,7 +75,11 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         }
     }
 
-    void switchClient(Class<Client> type = BrowserClient) {
+    Class getDefaultClientType() {
+        BrowserClient
+    }
+    
+    void switchClient(Class<Client> type = getDefaultClientType()) {
         currentClient = type.newInstance(this)
     }
     
@@ -91,7 +95,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         client.clientChanged()
     }
 
-    boolean getRedirectEnabled() {
+    boolean isRedirectEnabled() {
         autoFollowRedirects
     }
     

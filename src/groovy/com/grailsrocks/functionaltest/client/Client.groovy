@@ -2,7 +2,6 @@ package com.grailsrocks.functionaltest.client
 
 interface Client {
     
-    def getRequestConfig()
     void clientChanged()
     void request(URL url, String method, Closure setupDSL)
     

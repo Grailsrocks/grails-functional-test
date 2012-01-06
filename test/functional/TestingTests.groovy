@@ -19,9 +19,9 @@
  
 class TestingTests extends functionaltestplugin.FunctionalTestCase {
     void testTrivialGet() {
-        get 'http://grails.org'
+        get 'http://json.org'
         assertStatus 200
-        assertContentContains "Grails - The search is over"
+        assertContentContains "JSON"
     }
 
 /*    

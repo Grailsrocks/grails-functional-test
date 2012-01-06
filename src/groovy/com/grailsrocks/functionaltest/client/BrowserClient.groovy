@@ -41,9 +41,9 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     def redirectUrl
     def _page
     
-    ClientListener listener
+    ClientAdapter listener
 
-    BrowserClient(ClientListener listener) {
+    BrowserClient(ClientAdapter listener) {
         this.listener = listener
         println "Creating new client"
         _client = browser ? new WebClient(BrowserVersion[browser]) : new WebClient()
@@ -116,10 +116,6 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
 
     void clientChanged() {
         mainWindow = _client?.currentWindow        
-    }
-    
-    def getRequestConfig() {
-        settings
     }
     
     int getResponseStatus() {
