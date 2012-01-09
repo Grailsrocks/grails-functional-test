@@ -40,6 +40,26 @@ class APIClient implements Client {
                     clientArgs.query[pair[0]] = pair[1].toString()
                 }
             }
+            
+            switch (clientArgs.headers.'Content-Type') {
+                case 'application/json':
+                case 'text/json':
+                    // If we're JSON and a string we need to force the converter to not try to do anything
+                    /*if (wrapper.@body instanceof String) {
+                        clientArgs.requestContentType = 'text/plain'
+                    } 
+                    if (!(wrapper.@body instanceof Map) || !(wrapper.@body instanceof Closure)) {
+                        throw new IllegalArgumentException('Cannot work out what you are trying to submit in this JSON request, your body is a [${wrapper.@body?.getClass()}]')
+                    } */
+                    clientArgs.body = wrapper.@body
+                    break;
+                case 'text/xml':
+                    clientArgs.body = wrapper.@body
+                    break;
+                default:
+                    clientArgs.body = wrapper.@body
+                    break;
+            }
         }
 
         // twitter auth omitted
