@@ -22,8 +22,7 @@ class RequestBuilder {
     List reqParameters = []
     Map reqParametersByName = [:]
     Map headers = [:]
-    String bodyString
-    Closure bodyStreamCreator
+    String body
     def clientConfig // This could be HTMLUnit or RestClient etc
     
     RequestBuilder(clientConfig) {
@@ -52,17 +51,29 @@ class RequestBuilder {
         if (args.file) {
             headers['Content-Type'] = 'image/jpeg' // work out mime type
             
-            // Don't get the stream yet in case it is never used, to prevent dangling open stream
-            bodyStream = {-> f.newInputStream() }
+            // Hope that client does close the stream
+            body = f.newInputStream() 
         } else {
             if (args.json) {
                 headers['Content-Type'] = 'text/json'
-                bodyString = args.json
+                body = args.json
             } else if (args.xml) {
                 headers['Content-Type'] = 'text/xml'
-                bodyString = args.xml
+                body = args.xml
             }
         }
+    }
+    
+    void xml(def value) {
+        body(xml:value)
+    }
+    
+    void file(def value) {
+        body(file:value)
+    }
+    
+    void json(def value) {
+        body(json:value)
     }
     
     def missingMethod(String name, args) {
