@@ -5,5 +5,5 @@ class ContentChangedEvent {
     String method
     String eventSource
     int statusCode
-    
+    Client client
 }

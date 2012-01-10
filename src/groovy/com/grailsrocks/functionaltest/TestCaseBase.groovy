@@ -21,6 +21,7 @@ package com.grailsrocks.functionaltest
 
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.codehaus.groovy.runtime.StackTraceUtils
+import groovy.util.slurpersupport.GPathResult
 
 import java.net.URLEncoder
 
@@ -30,6 +31,7 @@ import grails.converters.XML
 import grails.util.Environment
 
 import com.grailsrocks.functionaltest.util.HTTPUtils
+import com.grailsrocks.functionaltest.util.TestUtils
 
 import junit.framework.AssertionFailedError
 
@@ -39,7 +41,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
 
     static MONKEYING_DONE
     
-    static BORING_STACK_ITEMS = ['FunctionalTests', 'functionaltestplugin.', 'gant.']
+    static BORING_STACK_ITEMS = ['FunctionalTests', 'functionaltestplugin.', 'gant.', 'com.grailsrocks']
     
     static {
         StackTraceUtils.addClassTest { className ->
@@ -60,6 +62,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
     protected stashedClients = [:]
     String currentClientId
     Client currentClient
+    def redirectUrl
     
     def contentTypeForJSON = 'application/json'
     def contentTypeForXML = 'text/xml'
@@ -92,7 +95,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
     }
 
     protected void clientChanged() {
-        client.clientChanged()
+        currentClient.clientChanged()
     }
 
     boolean isRedirectEnabled() {
@@ -134,12 +137,16 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
     
     protected void tearDown() {
         currentClient = null
+        consoleOutput.println('') // force newline
         super.tearDown()
     }
     
     def invokeMethod(String name, args) {
         def t = this
-        if ((name.startsWith('assert') || 
+        // Let's not mess with internal calls, or it is a nightmare to debug
+        if (name.startsWith('__')) {
+            return InvokerHelper.getMetaClass(this).invokeMethod(this,name,args)
+        } else if ((name.startsWith('assert') || 
                 name.startsWith('shouldFail') || 
                 name.startsWith('fail')) ) {
             try {
@@ -147,32 +154,37 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
             } catch (Throwable e) {
                 // Protect against nested func test exceptions when one assertX calls another
                 if (!(e instanceof FunctionalTestException)) {
-                    reportFailure(e.message ?: e.toString())
-                    throw sanitize(new FunctionalTestException(this, e))
+                    __reportFailure(e)
+                    throw __sanitize(new FunctionalTestException(this, e))
                 } else throw e
             }
         } else {
             try {
+                //System.out.println "Invoking: ${name} - $args"
                 return InvokerHelper.getMetaClass(this).invokeMethod(this,name,args)
             } catch (Throwable e) {
                 if (!(e instanceof FunctionalTestException)) {
-                    reportFailure(e.toString())
-                    throw sanitize(new FunctionalTestException(this, e))
+                    __reportFailure(e)
+                    throw __sanitize(new FunctionalTestException(this, e))
                 } else throw e
             }
         }
     }
     
-    protected sanitize(Throwable t) {
+    protected __sanitize(Throwable t) {
         StackTraceUtils.deepSanitize(t)
     }
 
-    protected void reportFailure(msg) {
+    protected void __reportFailure(e) {
         // Write out to user console
-        if (!msg) {
+        def msg
+        if (!e.message) {
             msg = "[no message available]"
+        } else {
+            msg = e.message
         }
         consoleOutput.println "\nFailed: ${msg}"
+        e.printStackTrace(consoleOutput ?: System.out) 
         // Write to output capture file
         //System.out.println "\nFailed: ${msg}"
         if (urlStack) {
@@ -229,21 +241,25 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
             }
         }
     }
+
+    def doRequest(URL url, String method, Closure paramSetup = null) {
+	    client.request(url, method, paramSetup)
+    }
     
 	def get(url, Closure paramSetup = null) {
-	    client.request(new URL(url), 'GET', paramSetup)
+	    doRequest(new URL(url), 'GET', paramSetup)
 	}
 
 	def post(url, Closure paramSetup = null) {
-	    client.request(new URL(url), 'POST', paramSetup)
+	    doRequest(new URL(url), 'POST', paramSetup)
 	}
 	
 	def delete(url, Closure paramSetup = null) {
-	    client.request(new URL(url), 'DELETE', paramSetup)
+	    doRequest(new URL(url), 'DELETE', paramSetup)
 	}
 	
 	def put(url, Closure paramSetup = null) {
-	    client.request(new URL(url), 'PUT', paramSetup)
+	    doRequest(new URL(url), 'PUT', paramSetup)
 	}
 	
 	void assertContentDoesNotContain(String expected) {
@@ -266,9 +282,36 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
 	    assertEquals expected, client.responseAsString
 	}
 
+    void expect(Map args) {
+        if (args.status) {
+            assertStatus(args.status)
+        }
+        if (args.contentType) {
+            assertContentType(args.contentType)
+        }
+        if (args.contentTypeStrict) {
+            assertContentTypeString(args.contentTypeStrict)
+        }
+        if (args.redirectUrl) {
+            assertRedirectUrl(args.redirectUrl)
+        }
+        if (args.redirectUrlContains) {
+            assertRedirectUrlContains(args.redirectUrlContains)
+        }
+        if (args.content) {
+            assertContent(args.content)
+        }
+        if (args.contentStrict) {
+            assertContentStrict(args.contentStrict)
+        }
+        if (args.contentContainsStrict) {
+            assertContentContainsStrict(args.contentContainsStrict)
+        }
+    }
+    
 	void assertStatus(int status) {
 	    def msg = "Expected HTTP status [$status] but was [${client.responseStatus}]"
-	    if (HTTPUtils.isRedirectStatus(client.responseStatus)) msg += " (received a redirect to ${client.redirectUrl})"
+	    if (HTTPUtils.isRedirectStatus(client.responseStatus)) msg += " (received a redirect to ${redirectUrl})"
 	    assertTrue msg.toString(), status == client.responseStatus
 	}
     
@@ -276,10 +319,10 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
 	    if (redirectEnabled) {
 	        throw new IllegalStateException("Asserting redirect, but you have not disabled redirects. Do redirectEnabled = false first, then call followRedirect() after asserting.")
 	    }
-	    if (!HTTPUtils.isRedirectStatus(response.statusCode)) {
+	    if (!HTTPUtils.isRedirectStatus(client.responseStatusCode)) {
 	        throw new AssertionFailedError("Asserting redirect, but response was not a valid redirect status code")
 	    }
-	    assertEquals expected, client.redirectRL
+	    assertEquals expected, redirectUrl
 	}
 
 	void assertRedirectUrlContains(String expected) {
@@ -289,8 +332,8 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
 	    if (!HTTPUtils.isRedirectStatus(client.responseStatus)) {
 	        throw new AssertionFailedError("Asserting redirect, but response was not a valid redirect status code")
 	    }
-	    if (!client.redirectURL?.contains(expected)) {
-            throw new AssertionFailedError("Asserting redirect contains [$expected], but it didn't. Was: [${client.redirectUrl}]")
+	    if (!edirectUrl?.contains(expected)) {
+            throw new AssertionFailedError("Asserting redirect contains [$expected], but it didn't. Was: [${redirectUrl}]")
         }
 	}
 
@@ -323,6 +366,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
      * Relies on access to our testing controller
      * @todo don't use get for this! it screws up url stack
      */
+/*
     void assertDomainObjectExists( Map args) {
         get('/functionaltesting/objectExists') {
             className = args.className
@@ -332,12 +376,14 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         
         assertStatus 200
     }
+*/
 
     /** 
      * Make sure a domain object exists in the target system
      * Relies on access to our testing controller
      * @todo don't use get for this! it screws up url stack
      */
+/*
     grails.converters.JSON getDomainObject( Map args) {
         get('/functionaltesting/findObject') {
             className = args.className
@@ -349,15 +395,29 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         
         return response.contentAsString.decodeJSON()
     }
-    
-    grails.converters.JSON getJSON() {
+*/    
+    GPathResult getJSON() {
         assertContentType contentTypeForJSON
-        client.responseAsString.decodeJSON()
+        grails.converters.JSON.parse(client.responseAsString)
     }
 
-    grails.converters.XML getXML() {
+    GPathResult getXML() {
         assertContentType contentTypeForXML
-        client.responseAsString.decodeXML()
+        grails.converters.XML.parse(client.responseAsString)
+    }
+    
+    /**
+     * Set the Authorization header
+     */
+    void authBasic(String user, String pass) {
+        client.setAuth('Basic', user, pass)
+    }
+    
+    /**
+     * Set the Authorization header
+     */
+    void clearAuth() {
+        client.setStickyHeader('Authorization', '')
     }
     
     /**
@@ -412,7 +472,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
      * Extract the first match from the contentAsString using the supplied regex
      */
     String extract(regexPattern) {
-        def m = response.contentAsString =~ regexPattern
+        def m = client.responseAsString =~ regexPattern
         return m ? m[0][1] : null
     }
     
@@ -429,14 +489,27 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         r.toString()
     }
     
+    protected newResponseReceived(Client client) {
+        if (HTTPUtils.isRedirectStatus(client.responseStatus)) {
+            redirectUrl = client.redirectURL
+            System.out.println("Response was a redirect to ${redirectUrl} ${'<'*20}")
+        } else {
+            redirectUrl = null
+        }
+        TestUtils.dumpResponseHeaders(client)
+        TestUtils.dumpContent(client)
+    }
+
     void contentChanged(ContentChangedEvent event) {
+        newResponseReceived(event.client)
+        
         // params.method ? params.method.toString()+' ' : 
         consoleOutput.print '#'
         while(urlStack.size() >= 50){ // only keep a window of the last 50 urls
             urlStack.remove(0)
         }
         urlStack << event
-    }
+    }    
 }
 
 

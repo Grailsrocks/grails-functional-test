@@ -28,6 +28,9 @@ import com.grailsrocks.functionaltest.dsl.RequestBuilder
 import com.grailsrocks.functionaltest.client.htmlunit.*
 
 import com.grailsrocks.functionaltest.util.HTTPUtils
+import com.grailsrocks.functionaltest.util.TestUtils
+
+import org.codehaus.groovy.grails.plugins.codecs.Base64Codec
 
 class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeListener, DomChangeListener {
     WebRequestSettings settings 
@@ -40,6 +43,8 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     def response
     def redirectUrl
     def _page
+    Map stickyHeaders = [:]
+    def currentAuth
     
     ClientAdapter listener
 
@@ -54,6 +59,18 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         _client.javaScriptEnabled = true 
         _client.throwExceptionOnFailingStatusCode = false
         _client.pageCreator = interceptingPageCreator
+    }
+
+    String setAuth(type, user, credentials) {
+        currentAuthInfo = [type:type, user:user, credentials:credentials]
+    }
+
+    void clearAuth() {
+        currentAuthInfo = null
+    }
+
+    String setStickyHeader(String header, String value) {
+        stickyHeaders[header] = value
     }
 
     boolean getJavaScriptEnabled() {
@@ -71,6 +88,14 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     boolean getPopupBlockerEnabled() {
         _client.popupBlockerEnabled
     }
+
+    String getRequestBody() {
+        if (settings?.requestBody != null) {
+            return settings.requestBody
+        } else {
+            return ''
+        }
+    }    
 
     /**
      * Set up our magic on the HtmlUnit classes
@@ -122,6 +147,10 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         response.statusCode
     }
     
+    String getResponseStatusMessage() {
+        response.statusMessage
+    }
+    
     String getRedirectURL() {
         response.redirectUrl
     }
@@ -168,9 +197,10 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         System.out.println "Content of web window [${event.webWindow}] changed"
         if (event.webWindow == mainWindow) {
             _page = event.newPage
-            def response = _page.webResponse
-            newResponseReceived(response)
+            response = _page.webResponse
+            
             listener.contentChanged( new ContentChangedEvent(
+                    client: this, 
                     url: response.requestSettings.url,
                     method: response.requestSettings.httpMethod,
                     eventSource: 'webWindowContentChange event',
@@ -184,23 +214,10 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         // @todo we need to think how to handle multiple windows
     }
 
-    protected newResponseReceived(response) {
-        System.out.println("${'<'*20} Received response from ${response.requestMethod} ${response.requestUrl} ${'<'*20}")
-        if (HTTPUtils.isRedirectStatus(response.statusCode)) {
-            redirectUrl = response.getResponseHeaderValue('Location')
-            System.out.println("Response was a redirect to ${redirectUrl} ${'<'*20}")
-        } else {
-            redirectUrl = null
-        }
-        dumpResponseHeaders(response)
-        System.out.println("Content")
-        System.out.println('='*40)
-        System.out.println(response.contentAsString)
-        System.out.println('='*40)
-        System.out.println('')
-        response = response
+    String getRequestMethod() {
+        settings.httpMethod
     }
-
+    
     String getCurrentURL() {
         response?.requestSettings?.url        
     }
@@ -218,25 +235,37 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         settings = new WebRequestSettings(url)
         settings.httpMethod = HttpMethod.valueOf(method)
         
+        if (currentAuthInfo) {
+            // @todo We could use htmlunit auth stuff here?
+            def encoded = Base64Codec.encode("${currentAuthInfo.user}:${currentAuthInfo.credentials}".getBytes('utf-8'))
+            settings.addAdditionalHeader('Authorization', "Basic "+encoded)
+        }
+
+        def wrapper
         if (paramSetupClosure) {
-            def wrapper = new RequestBuilder(settings)
-            paramSetupClosure.delegate = wrapper
-            paramSetupClosure.call()
-            
-            wrapper.@headers.each { entry ->
+            def builder = new RequestBuilder(settings)
+            wrapper = builder.build(paramSetupClosure)
+        }
+    
+        def headerLists = [stickyHeaders]
+        if (wrapper) {
+            headerLists << wrapper.headers
+        }
+        headerLists.each { headers ->
+            for (entry in headers) { 
                 settings.addAdditionalHeader(entry.key, entry.value.toString())
             }
+        }
 
-            if (wrapper.@reqParameters) {
-                def params = []
-                wrapper.@reqParameters.each { pair ->
-                    params << new NameValuePair(pair[0], pair[1].toString()) 
-                }
-                settings.requestParameters = params
+        if (wrapper?.reqParameters) {
+            def params = []
+            wrapper.reqParameters.each { pair ->
+                params << new NameValuePair(pair[0], pair[1].toString()) 
             }
+            settings.requestParameters = params
         }
         
-        dumpRequestInfo(settings)
+        TestUtils.dumpRequestInfo(this)
 
         response = _client.loadWebResponse(settings)
         _page = _client.loadWebResponseInto(response, mainWindow)
@@ -245,15 +274,18 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     } 
 
     Map getRequestHeaders() {
-        reqSettings?.additionalHeaders
+        settings?.additionalHeaders
     }
 
     Map getRequestParameters() {
-        reqSettings?.requestParameters   
+        def r = [:]
+        for (p in settings?.requestParameters) {
+            r[p.name] = p.value
+        }
     }
 
     String getResponseAsString() {
-        response.contentAsString
+        response.contentAsString != null ? response.contentAsString : ''
     }
     
     def getResponseDOM() {
@@ -265,33 +297,12 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     }
     
     Map getResponseHeaders() {
-        response.responseHeaders
+        def r = [:]
+        for (p in response?.responseHeaders) {
+            r[p.name] = p.value
+        }
     }    
 
-    protected dumpRequestInfo(reqSettings) {
-        System.out.println("Request parameters:")
-        System.out.println('='*40)
-        reqSettings?.requestParameters?.each {
-            System.out.println( "${it.name}: ${it.value}")
-        }
-        System.out.println('='*40)
-        System.out.println("Request headers:")
-        System.out.println('='*40)
-        reqSettings?.additionalHeaders?.each {Map.Entry it ->
-            System.out.println("${it.key}: ${it.value}")
-        }
-        System.out.println('='*40)
-    }
-    
-    protected dumpResponseHeaders(response) {
-        System.out.println("Response was ${response.statusCode} '${response.statusMessage}', headers:")
-        System.out.println('='*40)
-        response?.responseHeaders?.each {
-            System.out.println( "${it.name}: ${it.value}")
-        }
-        System.out.println('='*40)
-    }
-    
     String nodeToString(def n) {
         "[${n?.nodeName}] with value [${n?.nodeValue}] and "+
             "id [${n?.attributes?.getNamedItem('id')?.nodeValue}], name [${n?.attributes?.getNamedItem('name')?.nodeValue}]"

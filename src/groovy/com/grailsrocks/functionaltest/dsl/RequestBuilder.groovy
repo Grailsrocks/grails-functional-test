@@ -18,48 +18,79 @@
  */
 package com.grailsrocks.functionaltest.dsl
 
+import com.grailsrocks.functionaltest.util.HTTPUtils
+
 class RequestBuilder {
-    List reqParameters = []
-    Map reqParametersByName = [:]
-    Map headers = [:]
-    String body
-    def clientConfig // This could be HTMLUnit or RestClient etc
+    def ___data
+    def ___clientConfig
     
     RequestBuilder(clientConfig) {
-        this.clientConfig = clientConfig
+        this.@___clientConfig = clientConfig
     }
     
+    def build(Closure paramSetupClosure) {
+        this.@___data = [
+            reqParameters:[],
+            reqParametersByName:[:],
+            headers:[:],
+            body:null,
+            bodyIsUpload:false
+        ]
+        paramSetupClosure.delegate = this
+        paramSetupClosure.call()
+        return this.@___data
+    }
+
     void headers(Closure c) {
-        c.delegate = headers
+        c.delegate = this.@___data.headers
         c.call()
     }
 
     void setProperty(String name, def value) {
-        reqParameters << [name, value]
-        def existingByName = reqParametersByName[name]
+        this.@___data.reqParameters << [name, value]
+        def existingByName = this.@___data.reqParametersByName[name]
         // Sorry, I'm being evil, and no I can't even remember what it does currently! :)
         (existingByName != null) ? (existingByName instanceof List ? 
-            (existingByName << value) : (reqParametersByName[name] = [existingByName, value])) : 
-            (reqParametersByName[name] = value) 
+            (existingByName << value) : (this.@___data.reqParametersByName[name] = [existingByName, value])) : 
+            (this.@___data.reqParametersByName[name] = value) 
     }
 
     void body(Closure c) {
-        bodyString = c()?.toString() // call the closure and use result
+        this.@___data.body = c()?.toString() // call the closure and use result
+    }
+
+    void ___setContentTypeIfNotAlreadySet(String value) {
+        if (!this.@___data.headers['Content-Type']) {
+            this.@___data.headers['Content-Type'] = value
+        }
     }
     
     void body(Map args) {
         if (args.file) {
-            headers['Content-Type'] = 'image/jpeg' // work out mime type
-            
-            // Hope that client does close the stream
-            body = f.newInputStream() 
+            this.@___data.bodyIsUpload = true
+            switch (args.file) {
+                case File: 
+                    // @todo look up mime type
+                    ___setContentTypeIfNotAlreadySet(HTTPUtils.getMimeTypeOfFile(args.file.toString()))
+                    this.@___data.body = args.file.newInputStream()
+                    break;
+                case InputStream:
+                    this.@___data.body = args.file
+                    break;
+                default:
+                    def fn = args.file.toString()
+                    ___setContentTypeIfNotAlreadySet(HTTPUtils.getMimeTypeOfFile(fn))
+                    this.@___data.body = new File(fn).newInputStream()
+                    break;
+            }
+            ___setContentTypeIfNotAlreadySet('application/binary')
         } else {
             if (args.json) {
-                headers['Content-Type'] = 'text/json'
-                body = args.json
+                ___setContentTypeIfNotAlreadySet('text/json')
+                this.@___data.body = args.json
             } else if (args.xml) {
-                headers['Content-Type'] = 'text/xml'
-                body = args.xml
+                this.@___data.headers['Content-Type'] = 'text/xml'
+                this.@___data.body = args.xml
             }
         }
     }
@@ -76,6 +107,14 @@ class RequestBuilder {
         body(json:value)
     }
     
+    void contentType(String type) {
+        setContentType(type)
+    }
+    
+    void setContentType(String type) {
+        this.@___data.headers['Content-Type'] = type
+    }
+    
     def missingMethod(String name, args) {
         if (args.size() == 1) {
             this[name] = args[1]
@@ -86,9 +125,9 @@ class RequestBuilder {
     
     def getProperty(String name) {
         switch (name) {
-            case 'headers': return headers
-            case 'settings': return clientConfig
-            default: return reqParametersByName[name]
+            case 'headers': return this.@___data.headers
+            case 'settings': return this.@___clientConfig
+            default: return this.@___clientConfig.reqParametersByName[name]
         }
     }
 }

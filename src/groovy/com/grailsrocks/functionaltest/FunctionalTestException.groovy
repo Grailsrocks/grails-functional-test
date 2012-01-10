@@ -26,7 +26,7 @@ class FunctionalTestException extends junit.framework.AssertionFailedError {
     def hackedCause
     
     FunctionalTestException(TestCaseBase test, Throwable cause) {
-        super(cause.message)
+        super(cause.message ?: cause.toString())
         this.hackedCause = GrailsUtil.sanitize(cause)
         this.urlStack = test.urlStack
     }
