@@ -41,7 +41,12 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
 
     static MONKEYING_DONE
     
-    static BORING_STACK_ITEMS = ['FunctionalTests', 'functionaltestplugin.', 'gant.', 'com.grailsrocks']
+    static BORING_STACK_ITEMS = [
+        'FunctionalTests', 
+        'functionaltestplugin.', 
+        'gant.', 
+        'com.grailsrocks', 
+        'com.gargoylesoftware', 'org.apache']
     
     static {
         StackTraceUtils.addClassTest { className ->
@@ -95,7 +100,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
     }
 
     protected void clientChanged() {
-        currentClient.clientChanged()
+        currentClient?.clientChanged()
     }
 
     boolean isRedirectEnabled() {
@@ -129,7 +134,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         // Clear them in case this is a new unknown client name
         def c = stashedClients[id]
         if (c) {
-            client = c
+            currentClient = c
         }
         
         clientChanged()
@@ -154,7 +159,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
             } catch (Throwable e) {
                 // Protect against nested func test exceptions when one assertX calls another
                 if (!(e instanceof FunctionalTestException)) {
-                    __reportFailure(e)
+                    __reportFailure(__sanitize(e))
                     throw __sanitize(new FunctionalTestException(this, e))
                 } else throw e
             }
@@ -164,7 +169,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
                 return InvokerHelper.getMetaClass(this).invokeMethod(this,name,args)
             } catch (Throwable e) {
                 if (!(e instanceof FunctionalTestException)) {
-                    __reportFailure(e)
+                    __reportFailure(__sanitize(e))
                     throw __sanitize(new FunctionalTestException(this, e))
                 } else throw e
             }
@@ -201,8 +206,9 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
     }
     
     protected void doFollowRedirect() {
-        def u = client.followRedirect()
+        def u = redirectUrl
         if (u) {
+            get(u) // @todo should be same HTTP method as previous request?
             System.out.println("Followed redirect to $u")
         } else {
             throw new IllegalStateException('The last response was not a redirect, so cannot followRedirect')
@@ -235,6 +241,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
     }
 
     protected handleRedirects() {
+        println "in hR ${client.response}"
         if (HTTPUtils.isRedirectStatus(client.responseStatus)) {
             if (autoFollowRedirects) {
                 this.doFollowRedirect()
@@ -243,6 +250,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
     }
 
     def doRequest(URL url, String method, Closure paramSetup = null) {
+        redirectUrl = null
 	    client.request(url, method, paramSetup)
     }
     
@@ -491,13 +499,17 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
     
     protected newResponseReceived(Client client) {
         if (HTTPUtils.isRedirectStatus(client.responseStatus)) {
-            redirectUrl = client.redirectURL
+            redirectUrl = client.getResponseHeader('Location')
             System.out.println("Response was a redirect to ${redirectUrl} ${'<'*20}")
         } else {
             redirectUrl = null
         }
         TestUtils.dumpResponseHeaders(client)
         TestUtils.dumpContent(client)
+
+        // Now let's see if it was a redirect
+        println "hR"
+        handleRedirects()
     }
 
     void contentChanged(ContentChangedEvent event) {

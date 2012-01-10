@@ -20,11 +20,11 @@
  
 package functionaltestplugin
 
-import com.grailsrocks.functionaltest.TestCaseBase
+import com.grailsrocks.functionaltest.BrowserTestCase
 
 /**
  * @deprecated Use com.grailsrocks.functionaltest.BrowserTestCase or APITestCase or HybridTestCase
  */
-class FunctionalTestCase extends TestCaseBase {
+class FunctionalTestCase extends BrowserTestCase {
 
 }

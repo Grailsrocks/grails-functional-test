@@ -120,7 +120,6 @@ class APIClient implements Client {
         def event
         try {
             def methodName = method.toLowerCase()
-            //println "Invoking RESTClient.${methodName}(${clientArgs})"
             response = client."${methodName}"(clientArgs)
 
             if (response.data != null) {
@@ -186,10 +185,6 @@ class APIClient implements Client {
         responseString
     }
 
-    def getResponseDOM() {
-        throw new RuntimeException('Not supported')
-    }
-
     String getResponseContentType() {
         response.contentType
     }
@@ -208,13 +203,5 @@ class APIClient implements Client {
 
     String getCurrentURL() {
         url.toString()
-    }
-
-    String getRedirectURL() {
-        null
-    }
-
-    String followRedirect()  {
-        null
     }
 }

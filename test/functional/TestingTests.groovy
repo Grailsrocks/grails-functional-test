@@ -44,17 +44,22 @@ class TestingTests extends functionaltestplugin.FunctionalTestCase {
         assertTitleContains "twitter search"
         assertContentContains "#grails"
     }
+*/
 
-    void testPostBody() {
-        post("http://grails.org/plugin/search") {
-            searchInput = 'mongo'
+    void testGrailsPluginSearch() {
+        get("http://grails.org/")
+        click "Plugins"
+        
+        expect status:200, contentType:'text/html'
+        
+        form('pluginSearch') {
+            searchInput = 'functional-test'
+            searchButton.click()
         }
         
-        assertStatus 200
-        
-        assertContentContains "mongo"
-        assertContentContains "grails"
+        expect status:200, contentType:'text/html'
+
+        assertContentContains "functional test"
     }
-    */
 }
 

@@ -18,12 +18,9 @@ interface Client {
     String getResponseStatusMessage()
     
     String getResponseAsString()
-    def getResponseDOM()
     String getResponseContentType()
     String getResponseHeader(String name)
     Map getResponseHeaders()
 
     String getCurrentURL()    
-    String getRedirectURL()
-    String followRedirect()
 }

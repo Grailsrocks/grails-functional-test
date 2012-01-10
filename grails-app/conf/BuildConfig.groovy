@@ -17,35 +17,36 @@ grails.project.dependency.resolution = {
 
         mavenCentral()
         mavenRepo "http://repository.codehaus.org"
+        mavenRepo "http://repository.jboss.org/maven2" // For SAC
     }
 
     dependencies {
         compile( 'org.codehaus.groovy.modules.http-builder:http-builder:0.5.2') {
             excludes 'groovy', 'xml-apis', 'xerces'
         }
-        compile( 'net.sourceforge.htmlunit:htmlunit:2.7') {
+        compile( 'net.sourceforge.htmlunit:htmlunit:2.9') {
             excludes 'xml-apis', 'xerces'
         }
-        compile( 'net.sourceforge.htmlunit:htmlunit-core-js:2.7') {
+        compile( 'net.sourceforge.htmlunit:htmlunit-core-js:2.9') {
             excludes 'xml-apis', 'xerces'
         }
         compile( 'commons-httpclient:commons-httpclient:3.1') {
             excludes 'xml-apis', 'xerces'
         } 
         
-        test( 'sac:sac:1.3') {
+        test( 'org.w3c.sac:sac:1.3') {
             excludes 'xml-apis', 'xerces'
         }
-        test( 'commons-codec:commons-codec:1.4') {
+        test( 'commons-codec:commons-codec:1.6') {
             excludes 'xml-apis', 'xerces'
         }
-        test( 'nekohtml:nekohtml:1.9.14') {
+        test( 'net.sourceforge.nekohtml:nekohtml:1.9.15') {
             excludes 'xml-apis', 'xerces'
         }
-        test( 'cssparser:cssparser:0.9.5') {
+        test( 'new.sourceforge.cssparser:cssparser:0.9.6') {
             excludes 'xml-apis', 'xerces'
         }
-        test( 'serializer:serializer:2.7.1') {
+        test( 'xalan:serializer:serializer:2.7.1') {
             excludes 'xml-apis', 'xerces'
         }
         test( 'xalan:xalan:2.7.1') {

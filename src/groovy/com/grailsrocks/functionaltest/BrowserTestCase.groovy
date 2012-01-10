@@ -16,7 +16,7 @@ class BrowserTestCase extends TestCaseBase {
     @Override
     Client getClient() {
         def c = super.getClient()
-        if (client instanceof BrowserClient) {
+        if (c instanceof BrowserClient) {
             return c
         } else {
             throw new IllegalArgumentException("Cannot change browser, current client is not a browser")
@@ -81,8 +81,8 @@ class BrowserTestCase extends TestCaseBase {
     }
     
     def getPage() {
-        assertNotNull "Page must never be null!", clientState._page
-        return clientState._page        
+        assertNotNull "Page must never be null!", client._page
+        return client._page        
     }
     
     def byXPath(expr) {

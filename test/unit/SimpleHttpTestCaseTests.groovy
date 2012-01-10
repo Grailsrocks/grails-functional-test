@@ -25,7 +25,7 @@ import com.gargoylesoftware.htmlunit.HttpMethod
 
 import functionaltestplugin.FunctionalTestCase
 import functionaltestplugin.TestingUtil
-import functionaltestplugin.FunctionalTestException
+import com.grailsrocks.functionaltest.FunctionalTestException
 
 class SimpleHttpTestCaseTests extends GroovyTestCase {
 
@@ -287,6 +287,7 @@ class SimpleHttpTestCaseTests extends GroovyTestCase {
 
     void testGoogleSearchNamedSubmitField() {
         def code = {
+            redirectEnabled = true
             javaScriptEnabled = false // TODO investigate HtmlUnit errors caused by google JS
             get 'http://google.com'
 
@@ -424,7 +425,7 @@ class SimpleHttpTestCaseTests extends GroovyTestCase {
         TestingUtil.runTestScript(code)
     }
 
-    
+/*    
     void testWaitForJS() {
         def code = {
             get 'file:test/resources/bgjs.html'
@@ -435,7 +436,7 @@ class SimpleHttpTestCaseTests extends GroovyTestCase {
         }
         TestingUtil.runTestScript(code)
     }
-
+*/
     void testBackWithOnlyRedirect() {
 /*        def tester = new FunctionalTestCase()
         tester.setUp()

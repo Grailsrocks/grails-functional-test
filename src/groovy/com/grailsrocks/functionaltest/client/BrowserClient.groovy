@@ -41,18 +41,16 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     def mainWindow
     def browser
     def response
-    def redirectUrl
     def _page
     Map stickyHeaders = [:]
-    def currentAuth
+    def currentAuthInfo
+    def currentURL
     
     ClientAdapter listener
 
     BrowserClient(ClientAdapter listener) {
         this.listener = listener
-        println "Creating new client"
         _client = browser ? new WebClient(BrowserVersion[browser]) : new WebClient()
-        println "Created new client ${_client }"
         _client.addWebWindowListener(this)
         _client.redirectEnabled = false // We're going to handle this thanks very much
         _client.popupBlockerEnabled = true 
@@ -144,49 +142,46 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     }
     
     int getResponseStatus() {
-        response.statusCode
+        println "gRS ${response?.statusCode}"
+        response?.statusCode
     }
     
     String getResponseStatusMessage() {
-        response.statusMessage
-    }
-    
-    String getRedirectURL() {
-        response.redirectUrl
+        response?.statusMessage
     }
     
     String getResponseContentType() {
-        response.contentType
+        response?.contentType
     }
     
     
     void nodeAdded(DomChangeEvent event) {
-        System.out.println "Added DOM node [${nodeToString(event.changedNode)}] to parent [${nodeToString(event.parentNode)}]"
+        println "Added DOM node [${nodeToString(event.changedNode)}] to parent [${nodeToString(event.parentNode)}]"
     }
 
     void nodeDeleted(DomChangeEvent event) {
-        System.out.println "Removed DOM node [${nodeToString(event.changedNode)}] from parent [${nodeToString(event.parentNode)}]"
+        println "Removed DOM node [${nodeToString(event.changedNode)}] from parent [${nodeToString(event.parentNode)}]"
     }
     
     void attributeAdded(HtmlAttributeChangeEvent event) {
         def tag = event.htmlElement.tagName
         def name = event.htmlElement.attributes.getNamedItem('name')
         def id = event.htmlElement.attributes.getNamedItem('id')
-        System.out.println "Added attribute ${event.name} with value ${event.value} to tag [${tag}] (id: $id / name: $name)"
+        println "Added attribute ${event.name} with value ${event.value} to tag [${tag}] (id: $id / name: $name)"
     }
 
     void attributeRemoved(HtmlAttributeChangeEvent event) {
         def tag = event.htmlElement.tagName
         def name = event.htmlElement.attributes.getNamedItem('name')
         def id = event.htmlElement.attributes.getNamedItem('id')
-        System.out.println "Removed attribute ${event.name} from tag [${tag}] (id: $id / name: $name)"
+        println "Removed attribute ${event.name} from tag [${tag}] (id: $id / name: $name)"
     }
 
     void attributeReplaced(HtmlAttributeChangeEvent event)  {
         def tag = event.htmlElement.tagName
         def name = event.htmlElement.attributes.getNamedItem('name')
         def id = event.htmlElement.attributes.getNamedItem('id')
-        System.out.println "Changed attribute ${event.name} to ${event.value} on tag [${tag}] (id: $id / name: $name)"
+        println "Changed attribute ${event.name} to ${event.value} on tag [${tag}] (id: $id / name: $name)"
     }
                         
     void webWindowClosed(WebWindowEvent event) {
@@ -198,6 +193,7 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         if (event.webWindow == mainWindow) {
             _page = event.newPage
             response = _page.webResponse
+            
             
             listener.contentChanged( new ContentChangedEvent(
                     client: this, 
@@ -219,21 +215,14 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     }
     
     String getCurrentURL() {
-        response?.requestSettings?.url        
-    }
-    
-    String followRedirect() {
-        if (redirectUrl) {
-            get(u)
-            return u
-        } else {
-            return null
-        }
+        currentURL     
     }
     
     void request(URL url, String method, Closure paramSetupClosure) {
         settings = new WebRequestSettings(url)
         settings.httpMethod = HttpMethod.valueOf(method)
+        response = null
+        currentURL = url
         
         if (currentAuthInfo) {
             // @todo We could use htmlunit auth stuff here?
@@ -286,10 +275,6 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
 
     String getResponseAsString() {
         response.contentAsString != null ? response.contentAsString : ''
-    }
-    
-    def getResponseDOM() {
-        
     }
     
     String getResponseHeader(String name) {
