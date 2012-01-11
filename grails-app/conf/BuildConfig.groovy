@@ -34,7 +34,7 @@ grails.project.dependency.resolution = {
             excludes 'xml-apis', 'xerces'
         } 
         
-        test( 'org.w3c.sac:sac:1.3') {
+        test( 'org.w3c.css:sac:1.3') {
             excludes 'xml-apis', 'xerces'
         }
         test( 'commons-codec:commons-codec:1.6') {
@@ -43,10 +43,10 @@ grails.project.dependency.resolution = {
         test( 'net.sourceforge.nekohtml:nekohtml:1.9.15') {
             excludes 'xml-apis', 'xerces'
         }
-        test( 'new.sourceforge.cssparser:cssparser:0.9.6') {
+        test( 'net.sourceforge.cssparser:cssparser:0.9.6') {
             excludes 'xml-apis', 'xerces'
         }
-        test( 'xalan:serializer:serializer:2.7.1') {
+        test( 'xalan:serializer:2.7.1') {
             excludes 'xml-apis', 'xerces'
         }
         test( 'xalan:xalan:2.7.1') {
