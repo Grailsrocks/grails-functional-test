@@ -1,0 +1,6 @@
+.classpath
+.project
+.settings
+/docs
+/test/reports
+/web-app
