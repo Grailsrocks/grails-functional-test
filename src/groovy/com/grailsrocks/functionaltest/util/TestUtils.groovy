@@ -19,6 +19,7 @@ class TestUtils {
     }
     
     static final void dumpRequestInfo(Client client) {
+        System.out.println('')
         dumpHeading("Making request ${client.requestMethod} ${client.currentURL} parameters:")
         client?.requestParameters?.each {
             System.out.println( "${it.key}: ${it.value}")

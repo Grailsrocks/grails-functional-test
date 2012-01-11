@@ -241,7 +241,6 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
     }
 
     protected handleRedirects() {
-        println "in hR ${client.response}"
         if (HTTPUtils.isRedirectStatus(client.responseStatus)) {
             if (autoFollowRedirects) {
                 this.doFollowRedirect()
@@ -418,6 +417,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
      * Set the Authorization header
      */
     void authBasic(String user, String pass) {
+        println "Authentication set to: Basic $user:$pass"
         client.setAuth('Basic', user, pass)
     }
     
@@ -425,7 +425,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
      * Set the Authorization header
      */
     void clearAuth() {
-        client.setStickyHeader('Authorization', '')
+        client.clearAuth()
     }
     
     /**
@@ -508,7 +508,6 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         TestUtils.dumpContent(client)
 
         // Now let's see if it was a redirect
-        println "hR"
         handleRedirects()
     }
 

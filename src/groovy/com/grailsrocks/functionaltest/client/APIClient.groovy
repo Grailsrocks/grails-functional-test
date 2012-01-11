@@ -124,6 +124,9 @@ class APIClient implements Client {
 
             if (response.data != null) {
 
+                // @todo need to copy the response data first, then mutate it to string also
+                // as RESTClient only lets you read the response once.
+                
                 switch (response.contentType) {
                     case 'application/json':
                     case 'text/json':
@@ -190,7 +193,7 @@ class APIClient implements Client {
     }
 
     String getResponseHeader(String name) {
-        response.headers[name].value
+        response.headers[name]?.value
     }
 
     Map getResponseHeaders() {
