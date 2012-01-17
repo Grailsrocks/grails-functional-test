@@ -188,14 +188,19 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         } else {
             msg = e.message
         }
-        consoleOutput.println "\nFailed: ${msg}"
-        e.printStackTrace(consoleOutput ?: System.out) 
+        def out = consoleOutput ?: System.out
+        out.println "\nFailed: ${msg}"
+        e.printStackTrace(out) 
+        if (e.cause) {
+            out.println "\nFailed: ${msg}"
+            e.cause.printStackTrace(out) 
+        }
         // Write to output capture file
         //System.out.println "\nFailed: ${msg}"
         if (urlStack) {
-            consoleOutput.println "URL: ${urlStack[-1].url}"
+            out.println "URL: ${urlStack[-1].url}"
         }
-        consoleOutput.println ""
+        out.println ""
     }
     
     void followRedirect() {
@@ -225,9 +230,12 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
     URL makeRequestURL(url) {
         def reqURL
         url = url.toString()
+        println "mRU: $url"
         if ((url.indexOf('://') >= 0) || url.startsWith('file:')) {
+            println "mRU B: $url"
             reqURL = url.toURL()
         } else {
+            println "mRU C: $url"
             def base
             if (url.startsWith('/')) {
                 base = forceTrailingSlash(baseURL)
@@ -248,25 +256,28 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         }
     }
 
-    def doRequest(URL url, String method, Closure paramSetup = null) {
+    def doRequest(String url, String method, Closure paramSetup = null) {
+        // @todo build URL like we used to, relative to the app:
+        URL u = makeRequestURL(url)
+        
         redirectUrl = null
-	    client.request(url, method, paramSetup)
+	    client.request(u, method, paramSetup)
     }
     
 	def get(url, Closure paramSetup = null) {
-	    doRequest(new URL(url), 'GET', paramSetup)
+	    doRequest(url, 'GET', paramSetup)
 	}
 
 	def post(url, Closure paramSetup = null) {
-	    doRequest(new URL(url), 'POST', paramSetup)
+	    doRequest(url, 'POST', paramSetup)
 	}
 	
 	def delete(url, Closure paramSetup = null) {
-	    doRequest(new URL(url), 'DELETE', paramSetup)
+	    doRequest(url, 'DELETE', paramSetup)
 	}
 	
 	def put(url, Closure paramSetup = null) {
-	    doRequest(new URL(url), 'PUT', paramSetup)
+	    doRequest(url, 'PUT', paramSetup)
 	}
 	
 	void assertContentDoesNotContain(String expected) {

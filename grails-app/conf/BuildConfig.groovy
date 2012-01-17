@@ -30,9 +30,11 @@ grails.project.dependency.resolution = {
         compile( 'net.sourceforge.htmlunit:htmlunit-core-js:2.9') {
             excludes 'xml-apis', 'xerces'
         }
-        compile( 'commons-httpclient:commons-httpclient:3.1') {
+        /*
+        compile( 'org.apache.httpcomponents:httpclient:4.1.2') {
             excludes 'xml-apis', 'xerces'
         } 
+        */
         
         test( 'org.w3c.css:sac:1.3') {
             excludes 'xml-apis', 'xerces'
@@ -60,7 +62,7 @@ grails.project.dependency.resolution = {
     }
 
     plugins {
-        runtime( ":tomcat:$grailsVersion") {
+        build( ":tomcat:$grailsVersion", ':release:1.0.1') {
             export = false
         }
     }

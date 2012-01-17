@@ -219,6 +219,8 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     }
     
     void request(URL url, String method, Closure paramSetupClosure) {
+        println "brow r: $url"
+        
         settings = new WebRequestSettings(url)
         settings.httpMethod = HttpMethod.valueOf(method)
         response = null

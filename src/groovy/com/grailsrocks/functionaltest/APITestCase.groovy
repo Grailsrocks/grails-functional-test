@@ -11,7 +11,7 @@ class APITestCase extends TestCaseBase {
     }
     
 	def head(url, Closure paramSetup = null) {
-	    doRequest(new URL(url), 'HEAD', paramSetup)
+	    doRequest(url, 'HEAD', paramSetup)
 	}
 	
 	/**

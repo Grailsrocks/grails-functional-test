@@ -57,8 +57,14 @@ class APIClient implements Client {
         this.response = null
         this.responseString = null
         
-        clientArgs = [uri: url, headers:[:], query:[:]]
-        
+        clientArgs = [uri: url, headers:[:]]
+/*        def urlString = url.toString()
+        def qpos = urlString.indexOf('?')
+        if (qpos >= 0) {
+            clientArgs.uri = urlString[0..qpos-1]
+            clientArgs.queryString = urlString[qpos+1..-1]
+        }
+*/        
         // Set the authorization if any
         if (currentAuthInfo) {
             // @todo We could use client.auth.basic here?
@@ -83,17 +89,20 @@ class APIClient implements Client {
         }
         
         if (wrapper?.reqParameters) {
-            def params = []
+            // @todo RESTClient doesn't like if you use query and queryString together it seems
+            clientArgs.query = [:]
             wrapper.reqParameters.each { pair ->
                 clientArgs.query[pair[0]] = pair[1].toString()
             }
         }
         
         clientArgs.contentType = clientArgs.headers.'Content-Type' ?: TEXT
+        
         if (wrapper?.bodyIsUpload) {
             // Make the REST client just stream stuff up, we've set content type correctly
             clientArgs.requestContentType = BINARY
         }
+        
         switch (clientArgs.contentType) {
             case 'application/json':
             case 'text/json':
@@ -111,7 +120,7 @@ class APIClient implements Client {
             default:
                 if (wrapper?.body != null) {
                     clientArgs.body = wrapper.body
-                }
+                }   
                 break;
         }
 
@@ -120,6 +129,8 @@ class APIClient implements Client {
         def event
         try {
             def methodName = method.toLowerCase()
+            // @todo add failure handler here / stop failure handler being called
+            println "Making API client request with args: ${clientArgs}"
             response = client."${methodName}"(clientArgs)
 
             if (response.data != null) {
@@ -136,8 +147,18 @@ class APIClient implements Client {
                         responseString = response.data.text
                         break;
                     default:
-                        if (response.data != null) {
-                            responseString = response.data.toString()
+                        if (response.data instanceof StringReader) {
+                            responseString = response.data.text // AMEN groovy
+                        } else if (response.data instanceof InputStream) {
+                            // Handle the WTF that RESTclient gives you a byte input stream for text responses if you uploaded binary
+                            def charset = 'utf-8'
+                            def charsetPos = response.contentType.indexOf('charset=')
+                            if (charsetPos >= 0) {
+                                charset = response.contentType[charsetPos+1..-1]
+                            }
+                            responseString = new String(response.data.getText(charset))
+                        } else {
+                            responseString = response.data?.toString()
                         }
                         break;
                 }

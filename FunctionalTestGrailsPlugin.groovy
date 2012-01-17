@@ -29,6 +29,12 @@
 Simple 'pure grails' functional testing for your web applications
 '''
 
+    static pluginExcludes = [
+        'file:./grails-app/conf/TestFilters.groovy',
+        'file:./grails-app/controllers/com/grailsrocks/functionaltest/controllers/test/**/*.*',
+        'file:./web-app/**/*.*'
+    ]
+    
     // URL to the plugin's documentation
     def documentation = "http://grails.org/plugin/functional-test"
 
