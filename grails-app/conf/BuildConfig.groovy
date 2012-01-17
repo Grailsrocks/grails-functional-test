@@ -30,11 +30,9 @@ grails.project.dependency.resolution = {
         compile( 'net.sourceforge.htmlunit:htmlunit-core-js:2.9') {
             excludes 'xml-apis', 'xerces'
         }
-        /*
         compile( 'org.apache.httpcomponents:httpclient:4.1.2') {
             excludes 'xml-apis', 'xerces'
-        } 
-        */
+        }
         
         test( 'org.w3c.css:sac:1.3') {
             excludes 'xml-apis', 'xerces'

@@ -53,8 +53,8 @@ class TestingTests extends functionaltestplugin.FunctionalTestCase {
         expect status:200, contentType:'text/html'
         
         form('pluginSearch') {
-            searchInput = 'functional-test'
-            searchButton.click()
+            q = 'functional-test'
+            Search.click()
         }
         
         expect status:200, contentType:'text/html'
