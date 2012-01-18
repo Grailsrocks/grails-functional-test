@@ -230,12 +230,9 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
     URL makeRequestURL(url) {
         def reqURL
         url = url.toString()
-        println "mRU: $url"
         if ((url.indexOf('://') >= 0) || url.startsWith('file:')) {
-            println "mRU B: $url"
             reqURL = url.toURL()
         } else {
-            println "mRU C: $url"
             def base
             if (url.startsWith('/')) {
                 base = forceTrailingSlash(baseURL)

@@ -130,7 +130,6 @@ class APIClient implements Client {
         try {
             def methodName = method.toLowerCase()
             // @todo add failure handler here / stop failure handler being called
-            println "Making API client request with args: ${clientArgs}"
             response = client."${methodName}"(clientArgs)
 
             if (response.data != null) {

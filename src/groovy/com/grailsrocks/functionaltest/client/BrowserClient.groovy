@@ -142,7 +142,6 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     }
     
     int getResponseStatus() {
-        println "gRS ${response?.statusCode}"
         response?.statusCode
     }
     
@@ -219,8 +218,6 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     }
     
     void request(URL url, String method, Closure paramSetupClosure) {
-        println "brow r: $url"
-        
         settings = new WebRequestSettings(url)
         settings.httpMethod = HttpMethod.valueOf(method)
         response = null
@@ -256,6 +253,9 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
             settings.requestParameters = params
         }
         
+        if (wrapper?.body) {
+            settings.requestBody = wrapper.body
+        }
         TestUtils.dumpRequestInfo(this)
 
         response = _client.loadWebResponse(settings)
