@@ -357,7 +357,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
 	}
 
 	void assertContentType(String expected) {
-	    assertTrue stripWS(client.responseContentType.toLowerCase()).startsWith(stripWS(expected?.toLowerCase()))
+	    assertTrue "Expected content type to match [${expected}]", stripWS(client.responseContentType.toLowerCase()).startsWith(stripWS(expected?.toLowerCase()))
 	}
 
 	void assertHeader(String header, String expected) {
@@ -369,11 +369,11 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
 	}
 
 	void assertHeaderContains(String header, String expected) {
-	    assertTrue stripWS(client.getResponseHeader(header)?.toLowerCase()).contains(stripWS(expected?.toLowerCase()))
+	    assertTrue "Expected header [$header] to match [${expected}]", stripWS(client.getResponseHeader(header)?.toLowerCase()).contains(stripWS(expected?.toLowerCase()))
 	}
 
 	void assertHeaderContainsStrict(String header, String expected) {
-	    assertTrue client.getResponseHeader(header)?.contains(expected)
+	    assertTrue "Expected header [$header] to strictly match [${expected}]", client.getResponseHeader(header)?.contains(expected)
 	}
 
     /** 

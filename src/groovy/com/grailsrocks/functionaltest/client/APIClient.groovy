@@ -24,6 +24,7 @@ class APIClient implements Client {
     
     APIClient(ClientAdapter listener) {
         this.listener = listener
+        client.parserRegistry = new EvilWizardsKilledByFireIncantationParserRegistry()
     }
     
     void clientChanged() {
@@ -58,13 +59,7 @@ class APIClient implements Client {
         this.responseString = null
         
         clientArgs = [uri: url, headers:[:]]
-/*        def urlString = url.toString()
-        def qpos = urlString.indexOf('?')
-        if (qpos >= 0) {
-            clientArgs.uri = urlString[0..qpos-1]
-            clientArgs.queryString = urlString[qpos+1..-1]
-        }
-*/        
+
         // Set the authorization if any
         if (currentAuthInfo) {
             // @todo We could use client.auth.basic here?
@@ -95,24 +90,36 @@ class APIClient implements Client {
                 clientArgs.query[pair[0]] = pair[1].toString()
             }
         }
-        
-        clientArgs.contentType = clientArgs.headers.'Content-Type' ?: TEXT
-        
+
+        def requestType = "application/binary"
+        def acceptType = "*/*"
+
+        if (clientArgs.headers.'Content-Type') {
+            requestType = clientArgs.headers.'Content-Type'
+        }
+        if (clientArgs.headers.'Accept') {
+            acceptType = clientArgs.headers.'Accept'
+        }
+
+        // Override request type if uploading binary
         if (wrapper?.bodyIsUpload) {
             // Make the REST client just stream stuff up, we've set content type correctly
-            clientArgs.requestContentType = BINARY
+            // this tells it to use our content type
+            requestType = BINARY
         }
+        
+        clientArgs.contentType = acceptType
+        clientArgs.requestContentType = requestType
+        
         
         switch (clientArgs.contentType) {
             case 'application/json':
             case 'text/json':
-                clientArgs.contentType = TEXT
                 if (wrapper?.body != null) {
                     clientArgs.body = wrapper.body
                 }
                 break;
             case 'text/xml':
-                clientArgs.contentType = TEXT
                 if (wrapper?.body != null) {
                     clientArgs.body = wrapper.body
                 }
@@ -132,32 +139,26 @@ class APIClient implements Client {
             // @todo add failure handler here / stop failure handler being called
             response = client."${methodName}"(clientArgs)
 
+        println "xresp is: ${response.data.getClass()}"
+
             if (response.data != null) {
 
                 // @todo need to copy the response data first, then mutate it to string also
                 // as RESTClient only lets you read the response once.
                 
                 switch (response.contentType) {
-                    case 'application/json':
-                    case 'text/json':
-                        responseString = response.data.text
-                        break;
-                    case 'text/xml':
+                    case ~'application/json.*':
+                    case ~'text/.*':
                         responseString = response.data.text
                         break;
                     default:
-                        if (response.data instanceof StringReader) {
-                            responseString = response.data.text // AMEN groovy
-                        } else if (response.data instanceof InputStream) {
-                            // Handle the WTF that RESTclient gives you a byte input stream for text responses if you uploaded binary
-                            def charset = 'utf-8'
-                            def charsetPos = response.contentType.indexOf('charset=')
-                            if (charsetPos >= 0) {
-                                charset = response.contentType[charsetPos+1..-1]
-                            }
-                            responseString = new String(response.data.getText(charset))
-                        } else {
-                            responseString = response.data?.toString()
+                        println "yresp is: ${response.data.getClass()}"
+                        byte[] bytes = new byte[100] 
+                        response.data.read(bytes)
+                        responseString = "Binary file:\r\n" + new String(bytes, 'utf-8')
+                        def n = response.data.available()
+                        if (n) {
+                            responseString += "\r\n and $n more bytes"
                         }
                         break;
                 }
