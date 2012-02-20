@@ -17,13 +17,13 @@
  */
  
  class FunctionalTestGrailsPlugin {
-    def version = "2.0.SNAPSHOT"
+    def version = "2.0-M1"
     def dependsOn = [:]
     def loadAfter = ['greenmail', 'fixtures']
     def scopes = [ includes: "functional_test" ]
 
     def author = "Marc Palmer"
-    def authorEmail = "marc@anyware.co.uk"
+    def authorEmail = "marc@grailsrocks.com"
     def title = "Functional Testing"
     def description = '''\
 Simple 'pure grails' functional testing for your web applications
@@ -37,6 +37,18 @@ Simple 'pure grails' functional testing for your web applications
     
     // URL to the plugin's documentation
     def documentation = "http://grails.org/plugin/functional-test"
+
+    def license = "APACHE 2"
+
+    def organization = [name: "Grailsrocks", url: "http://grailsrocks.com/"]
+
+    def developers = [
+            [name: "Marc Palmer", email: "marc@grailsrocks.com"]
+    ]
+
+    def issueManagement = [ system: "JIRA", url: "http://jira.grails.org/browse/GPFUNCTIONALTEST" ]
+
+    def scm = [url: "https://github.com/Grailsrocks/grails-functional-test"]
 
     def doWithSpring = {
         // TODO Implement runtime spring config (optional)
