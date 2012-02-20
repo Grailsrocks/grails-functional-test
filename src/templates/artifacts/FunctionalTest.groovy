@@ -1,4 +1,4 @@
-@artifact.package@import com.grailsrocks.functionaltest.**
+@artifact.package@import com.grailsrocks.functionaltest.*
 
 class @artifact.name@ extends BrowserTestCase {
     void testSomeWebsiteFeature() {
