@@ -139,8 +139,6 @@ class APIClient implements Client {
             // @todo add failure handler here / stop failure handler being called
             response = client."${methodName}"(clientArgs)
 
-        println "xresp is: ${response.data.getClass()}"
-
             if (response.data != null) {
 
                 // @todo need to copy the response data first, then mutate it to string also
