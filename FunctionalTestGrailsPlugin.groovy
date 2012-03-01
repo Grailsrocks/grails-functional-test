@@ -17,9 +17,14 @@
  */
  
  class FunctionalTestGrailsPlugin {
-    def version = "2.0-M1"
+    def version = "2.0.M2"
+    
+    def grailsVersion = "1.3 > *"
+
     def dependsOn = [:]
+
     def loadAfter = ['greenmail', 'fixtures']
+
     def scopes = [ includes: "functional_test" ]
 
     def author = "Marc Palmer"
