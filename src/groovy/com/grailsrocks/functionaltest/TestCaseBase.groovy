@@ -347,7 +347,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
 	    if (!HTTPUtils.isRedirectStatus(client.responseStatus)) {
 	        throw new AssertionFailedError("Asserting redirect, but response was not a valid redirect status code")
 	    }
-	    if (!edirectUrl?.contains(expected)) {
+	    if (!redirectUrl?.contains(expected)) {
             throw new AssertionFailedError("Asserting redirect contains [$expected], but it didn't. Was: [${redirectUrl}]")
         }
 	}
