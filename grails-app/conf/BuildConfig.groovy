@@ -52,6 +52,10 @@ grails.project.dependency.resolution = {
         test( 'xalan:xalan:2.7.1') {
             excludes 'xml-apis', 'xerces'
         }
+        
+        test('org.apache.httpcomponents:httpmime:4.1.3') {
+            excludes 'xml-apis', 'xerces'
+        }
 /*
         test( 'xercesImpl:xercesImpl:2.9.1') {
             excludes 'xml-apis'
