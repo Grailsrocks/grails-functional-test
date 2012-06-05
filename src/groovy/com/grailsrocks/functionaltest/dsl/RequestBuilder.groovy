@@ -49,7 +49,8 @@ class RequestBuilder {
     void setProperty(String name, def value) {
         this.@___data.reqParameters << [name, value]
         def existingByName = this.@___data.reqParametersByName[name]
-        // Sorry, I'm being evil, and no I can't even remember what it does currently! :)
+        // Sorry, I'm being evil, but this looks for multivalues and sets them as lists as necessary
+        // I'll simplify it another time eh
         (existingByName != null) ? (existingByName instanceof List ? 
             (existingByName << value) : (this.@___data.reqParametersByName[name] = [existingByName, value])) : 
             (this.@___data.reqParametersByName[name] = value) 

@@ -319,6 +319,9 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         if (args.contentStrict) {
             assertContentStrict(args.contentStrict)
         }
+        if (args.contentContains) {
+            assertContentContains(args.contentContains)
+        }
         if (args.contentContainsStrict) {
             assertContentContainsStrict(args.contentContainsStrict)
         }

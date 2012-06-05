@@ -83,6 +83,7 @@ class APIClient implements Client {
             }
         }
         
+        //@todo THIS IS BROKEN at least for GET it seems, no params make it to server
         if (wrapper?.reqParameters) {
             // @todo RESTClient doesn't like if you use query and queryString together it seems
             clientArgs.query = [:]

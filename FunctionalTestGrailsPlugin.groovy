@@ -17,7 +17,7 @@
  */
  
  class FunctionalTestGrailsPlugin {
-    def version = "2.0.M2"
+    def version = "2.0.M3-SNAPSHOT"
     
     def grailsVersion = "1.3 > *"
 
@@ -35,7 +35,6 @@ Simple 'pure grails' functional testing for your web applications
 '''
 
     static pluginExcludes = [
-        'file:./grails-app/conf/TestFilters.groovy',
         'file:./grails-app/controllers/com/grailsrocks/functionaltest/controllers/test/**/*.*',
         'file:./web-app/**/*.*'
     ]
