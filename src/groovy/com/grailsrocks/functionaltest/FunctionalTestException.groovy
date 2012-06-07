@@ -36,7 +36,7 @@ class FunctionalTestException extends junit.framework.AssertionFailedError {
         pw.println "URL Stack that resulted in ${hackedCause ?: 'failure'}"
         pw.println "---------------"
         urlStack?.reverseEach {
-            pw.println "${it.url} ${!it.hasProperty('source') ?: "$it.source"}"
+            pw.println "${it.method} ${it.url} ${it.eventSource}"
         }
         pw.println "---------------"
         
