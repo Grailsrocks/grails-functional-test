@@ -152,6 +152,10 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     String getResponseContentType() {
         response?.contentType
     }
+	
+	String getResponseCharset() {
+		response?.contentCharset
+	}
     
     
     void nodeAdded(DomChangeEvent event) {
