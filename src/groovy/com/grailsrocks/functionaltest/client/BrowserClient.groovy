@@ -241,7 +241,7 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         }
         headerLists.each { headers ->
             for (entry in headers) { 
-                settings.addAdditionalHeader(entry.key, entry.value.toString())
+                settings.setAdditionalHeader(entry.key, entry.value.toString())
             }
         }
 
