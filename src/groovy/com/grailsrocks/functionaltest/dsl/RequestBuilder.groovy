@@ -116,13 +116,17 @@ class RequestBuilder {
         this.@___data.headers['Content-Type'] = type
     }
     
-    def missingMethod(String name, args) {
+    def methodMissing(String name, args) {
         if (args.size() == 1) {
-            this[name] = args[1]
+            this[name] = args[0]
         } else {
             throw NoSuchMethodException("No such method $name - you can only invoke methods with a single argument to set request parameters")
         }
     }
+	
+	void param(String name, def val){
+		this[name] = val
+		}
     
     def getProperty(String name) {
         switch (name) {
