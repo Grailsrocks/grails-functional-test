@@ -424,6 +424,10 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         grails.converters.XML.parse(client.responseAsString)
     }
     
+    String getContent() {
+        client?.responseAsString
+    }
+    
     /**
      * Set the Authorization header
      */

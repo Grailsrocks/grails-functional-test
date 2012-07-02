@@ -11,9 +11,9 @@ grails.project.dependency.resolution = {
    inherits "global"
    
 	repositories {        
+	    grailsRepo 'http://grails.org/plugins' 
+        
         grailsPlugins()
-        grailsHome()
-        grailsCentral()
 
         mavenCentral()
         mavenRepo "http://repository.codehaus.org"
