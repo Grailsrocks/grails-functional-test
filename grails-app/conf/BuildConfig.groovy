@@ -11,7 +11,7 @@ grails.project.dependency.resolution = {
    inherits "global"
    
 	repositories {        
-	    grailsRepo 'http://grails.org/plugins' 
+//	    grailsRepo 'http://grails.org/plugins' 
         
         grailsPlugins()
 
@@ -60,7 +60,7 @@ grails.project.dependency.resolution = {
     }
 
     plugins {
-        build( ":tomcat:$grailsVersion", ':release:2.0.2') {
+        build( ":tomcat:$grailsVersion", ':release:2.0.3') {
             export = false
         }
     }
