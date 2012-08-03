@@ -13,11 +13,4 @@ class APITestCase extends TestCaseBase {
 	def head(url, Closure paramSetup = null) {
 	    doRequest(url, 'HEAD', paramSetup)
 	}
-	
-	/**
-	 * Get whatever the server gave us back and RESTClient parsed out
-	 */
-	def getData() {
-	    client.response.data
-	}
 }

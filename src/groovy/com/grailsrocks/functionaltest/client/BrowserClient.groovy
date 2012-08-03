@@ -138,7 +138,6 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     }
 
     void clientChanged() {
-        mainWindow = _client?.currentWindow        
     }
     
     int getResponseStatus() {
@@ -188,8 +187,8 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     }
     
     void webWindowContentChanged(WebWindowEvent event) {
-        System.out.println "Content of web window [${event.webWindow}] changed"
-        if (event.webWindow == mainWindow) {
+        System.out.println "Content of web window [${event?.webWindow}] changed"
+        if (event?.webWindow == mainWindow) {
             _page = event.newPage
             response = _page.webResponse
             
@@ -198,10 +197,10 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
                     client: this, 
                     url: response.requestSettings.url,
                     method: response.requestSettings.httpMethod,
-                    eventSource: 'webWindowContentChange event',
+                    eventSource: 'Browser content change',
                     statusCode: response.statusCode) )
         } else {
-            System.out.println "New content of web window [${event.webWindow}] was not for main window, ignoring"
+            System.out.println "New content of web window [${event?.webWindow}] was not for main window, ignoring"
         }
     }
     
@@ -223,18 +222,21 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         response = null
         currentURL = url
         
+        System.out.println "Making request: $url A"
         if (currentAuthInfo) {
             // @todo We could use htmlunit auth stuff here?
             def encoded = Base64Codec.encode("${currentAuthInfo.user}:${currentAuthInfo.credentials}".getBytes('utf-8'))
             settings.addAdditionalHeader('Authorization', "Basic "+encoded)
         }
 
+        System.out.println "Making request: $url B"
         def wrapper
         if (paramSetupClosure) {
             def builder = new RequestBuilder(settings)
             wrapper = builder.build(paramSetupClosure)
         }
     
+        System.out.println "Making request: $url C"
         def headerLists = [stickyHeaders]
         if (wrapper) {
             headerLists << wrapper.headers
@@ -245,6 +247,7 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
             }
         }
 
+        System.out.println "Making request: $url D"
         if (wrapper?.reqParameters) {
             def params = []
             wrapper.reqParameters.each { pair ->
@@ -256,10 +259,15 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         if (wrapper?.body) {
             settings.requestBody = wrapper.body
         }
+        System.out.println "Making request: $url D"
         TestUtils.dumpRequestInfo(this)
 
+        System.out.println "Making request: $url E"
         response = _client.loadWebResponse(settings)
+        mainWindow = _client?.currentWindow        
+        System.out.println "Making request: $url F"
         _page = _client.loadWebResponseInto(response, mainWindow)
+        System.out.println "Making request: $url G"
         
         // By this time the events will have been triggered
     } 

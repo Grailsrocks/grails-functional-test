@@ -9,18 +9,24 @@ import com.grailsrocks.functionaltest.client.htmlunit.*
 import com.grailsrocks.functionaltest.client.Client
 
 class BrowserTestCase extends TestCaseBase {
+    Class getDefaultClientType() {
+        BrowserClient
+    }
+    
+    boolean __isDSLMethod(String name) {
+        if (super.__isDSLMethod(name)) {
+            return true
+        }
+        
+        name.startsWith('by') ||
+        name == 'back' ||
+        name == 'form' ||
+        name == 'click' ||
+        name == 'clearCache'
+    }
+    
     void setBrowser(String browser) {
         client.clientState.browser = browser
-    }
-
-    @Override
-    Client getClient() {
-        def c = super.getClient()
-        if (c instanceof BrowserClient) {
-            return c
-        } else {
-            throw new IllegalArgumentException("Cannot change browser, current client is not a browser")
-        }
     }
 
     def getBrowser() {

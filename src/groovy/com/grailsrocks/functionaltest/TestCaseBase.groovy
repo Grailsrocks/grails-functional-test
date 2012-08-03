@@ -37,7 +37,7 @@ import junit.framework.AssertionFailedError
 
 import com.grailsrocks.functionaltest.client.*
 
-class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, ClientAdapter {
+abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, ClientAdapter {
 
     static MONKEYING_DONE
     
@@ -45,8 +45,8 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         'FunctionalTests', 
         'functionaltestplugin.', 
         'gant.', 
-        'com.grailsrocks', 
-        'com.gargoylesoftware', 'org.apache']
+        'com.gargoylesoftware', 
+        'org.apache']
     
     static {
         StackTraceUtils.addClassTest { className ->
@@ -65,7 +65,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
     boolean autoFollowRedirects = true
     def consoleOutput
     protected stashedClients = [:]
-    String currentClientId
+    private String currentClientId
     Client currentClient
     def redirectUrl
     
@@ -81,19 +81,17 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
             BrowserClient.initVirtualMethods()
             MONKEYING_DONE = true
         }
+        
+        if (!consoleOutput) {
+            consoleOutput = System.out
+        }
     }
 
-    Class getDefaultClientType() {
-        BrowserClient
-    }
-    
-    void switchClient(Class<Client> type = getDefaultClientType()) {
-        currentClient = type.newInstance(this)
-    }
+    abstract Class getDefaultClientType()
     
     Client getClient() {
         if (!currentClient) {
-            switchClient()
+            client('default')
             clientChanged()
         }
         return currentClient
@@ -111,23 +109,41 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         autoFollowRedirects = enabled
     }
 
+    boolean __isDSLMethod(String name) {
+        name.startsWith('assert') || 
+        name.startsWith('shouldFail') || 
+        name.startsWith('fail') ||
+        name == 'client' ||
+        name == 'defaultClientType'
+    }
+
     /**
-     * Call to switch between multiple client browsers, simulating different users
+     * Call to switch between multiple clients, simulating different users or access scenarios (REST API + browser)
      */
-    void client(String id) {
-        //System.out.println "Stashed clients: ${stashedClients.dump()}"
+    void client(String id, Class<Client> type = getDefaultClientType()) {
+        testReportOut.println "Switching to browser client [$id]"
         if (id != currentClientId) {
             // If we were currently unnamed but have some state, save our state with name ""
             stashClient(currentClientId ?: '')
+            currentClient = null
             // restore client if it is known, else 
             unstashClient(id)
-            currentClientId = id
+            if (!currentClient) {
+                // Creat new
+                testReportOut.println "Creating to new client [$id] of type [$type]"
+                currentClient = (type ?: BrowserClient).newInstance(this)
+                stashClient(id)
+            }
         }
+        currentClientId = id
+    }
+    
+    String getCurrentClientId() {
+        this.@currentClientId
     }
 
     protected void stashClient(id) {
-        stashedClients[id] = client
-        currentClient = null
+        stashedClients[id] = currentClient
     }
 
     protected void unstashClient(id) {
@@ -146,14 +162,14 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         super.tearDown()
     }
     
+    PrintStream getTestReportOut() {
+        System.out
+    }
+    
     def invokeMethod(String name, args) {
         def t = this
         // Let's not mess with internal calls, or it is a nightmare to debug
-        if (name.startsWith('__')) {
-            return InvokerHelper.getMetaClass(this).invokeMethod(this,name,args)
-        } else if ((name.startsWith('assert') || 
-                name.startsWith('shouldFail') || 
-                name.startsWith('fail')) ) {
+        if (!name.startsWith('__') && __isDSLMethod(name)) {
             try {
                 return InvokerHelper.getMetaClass(this).invokeMethod(this,name,args)
             } catch (Throwable e) {
@@ -164,15 +180,7 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
                 } else throw e
             }
         } else {
-            try {
-                //System.out.println "Invoking: ${name} - $args"
-                return InvokerHelper.getMetaClass(this).invokeMethod(this,name,args)
-            } catch (Throwable e) {
-                if (!(e instanceof FunctionalTestException)) {
-                    __reportFailure(__sanitize(e))
-                    throw __sanitize(new FunctionalTestException(this, e))
-                } else throw e
-            }
+            return InvokerHelper.getMetaClass(this).invokeMethod(this,name,args)
         }
     }
     
@@ -526,6 +534,9 @@ class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, Client
         handleRedirects()
     }
 
+    /**
+     * Called by client implementations when new response received
+     */
     void contentChanged(ContentChangedEvent event) {
         newResponseReceived(event.client)
         

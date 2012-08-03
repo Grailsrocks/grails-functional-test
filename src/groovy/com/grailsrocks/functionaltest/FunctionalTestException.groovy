@@ -24,11 +24,13 @@ import grails.util.GrailsUtil
 class FunctionalTestException extends junit.framework.AssertionFailedError {
     def urlStack
     def hackedCause
+    def baseURL
     
     FunctionalTestException(TestCaseBase test, Throwable cause) {
         super(cause.message ?: cause.toString())
         this.hackedCause = GrailsUtil.sanitize(cause)
         this.urlStack = test.urlStack
+        this.baseURL = test.baseURL
     }
     
     void dumpURLStack(PrintWriter pw = null) {
@@ -36,7 +38,8 @@ class FunctionalTestException extends junit.framework.AssertionFailedError {
         pw.println "URL Stack that resulted in ${hackedCause ?: 'failure'}"
         pw.println "---------------"
         urlStack?.reverseEach {
-            pw.println "${it.method} ${it.url} ${it.eventSource}"
+            def url = it.url.startsWith(baseURL) ? it.url[baseURL.size()..-1] : it.url
+            pw.println "${it.method} ${url} ${it.eventSource}"
         }
         pw.println "---------------"
         

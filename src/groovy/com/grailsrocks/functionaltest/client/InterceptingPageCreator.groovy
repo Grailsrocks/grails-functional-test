@@ -14,6 +14,7 @@ class InterceptingPageCreator extends DefaultPageCreator {
     }
     
     Page createPage(WebResponse webResponse, WebWindow webWindow)  {
+        println "Interceptor createPage: ${webWindow}"
         def p = super.createPage(webResponse,webWindow)
         if (p instanceof HtmlPage) {
             p.addDomChangeListener(client)
