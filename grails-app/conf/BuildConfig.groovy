@@ -24,26 +24,23 @@ grails.project.dependency.resolution = {
         compile( 'org.codehaus.groovy.modules.http-builder:http-builder:0.5.2') {
             excludes 'groovy', 'xml-apis', 'xerces'
         }
-        compile( 'net.sourceforge.htmlunit:htmlunit:2.9') {
+        compile( 'net.sourceforge.htmlunit:htmlunit:2.10') {
             excludes 'xml-apis', 'xerces'
         }
-        compile( 'net.sourceforge.htmlunit:htmlunit-core-js:2.9') {
+        compile( 'net.sourceforge.htmlunit:htmlunit-core-js:2.10') {
             excludes 'xml-apis', 'xerces'
         }
-        compile( 'org.apache.httpcomponents:httpclient:4.1.2') {
+        compile( 'org.apache.httpcomponents:httpclient:4.2.1') {
             excludes 'xml-apis', 'xerces'
         }
         
-        test( 'org.w3c.css:sac:1.3') {
-            excludes 'xml-apis', 'xerces'
-        }
         test( 'commons-codec:commons-codec:1.6') {
             excludes 'xml-apis', 'xerces'
         }
-        test( 'net.sourceforge.nekohtml:nekohtml:1.9.15') {
+        test( 'net.sourceforge.nekohtml:nekohtml:1.9.16') {
             excludes 'xml-apis', 'xerces'
         }
-        test( 'net.sourceforge.cssparser:cssparser:0.9.6') {
+        test( 'net.sourceforge.cssparser:cssparser:0.9.7') {
             excludes 'xml-apis', 'xerces'
         }
         test( 'xalan:serializer:2.7.1') {
@@ -57,6 +54,11 @@ grails.project.dependency.resolution = {
             excludes 'xml-apis'
         }
 */
+
+        test( 'org.w3c.css:sac:1.3') {
+            excludes 'xml-apis', 'xerces'
+        }
+        
     }
 
     plugins {
