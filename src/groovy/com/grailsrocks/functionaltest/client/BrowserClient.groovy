@@ -1,8 +1,7 @@
 package com.grailsrocks.functionaltest.client
 
-import com.gargoylesoftware.htmlunit.WebRequestSettings
+import com.gargoylesoftware.htmlunit.WebRequest
 import com.gargoylesoftware.htmlunit.util.NameValuePair
-import com.gargoylesoftware.htmlunit.WebRequestSettings
 import com.gargoylesoftware.htmlunit.WebClient
 import com.gargoylesoftware.htmlunit.WebWindowEvent
 import com.gargoylesoftware.htmlunit.WebWindowListener
@@ -33,7 +32,7 @@ import com.grailsrocks.functionaltest.util.TestUtils
 import org.codehaus.groovy.grails.plugins.codecs.Base64Codec
 
 class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeListener, DomChangeListener {
-    WebRequestSettings settings 
+    WebRequest settings 
 
     def interceptingPageCreator = new InterceptingPageCreator(this)
 
@@ -200,11 +199,12 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
             _page = event.newPage
             response = _page.webResponse
             
+            System.err.println "PAGE for [${_page.url}] IS A: ${_page}"
             
             listener.contentChanged( new ContentChangedEvent(
                     client: this, 
-                    url: response.requestSettings.url,
-                    method: response.requestSettings.httpMethod,
+                    url: response.webRequest.url,
+                    method: response.webRequest.httpMethod,
                     eventSource: 'Browser content change',
                     statusCode: response.statusCode) )
         } else {
@@ -225,26 +225,23 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     }
     
     void request(URL url, String method, Closure paramSetupClosure) {
-        settings = new WebRequestSettings(url)
+        settings = new WebRequest(url)
         settings.httpMethod = HttpMethod.valueOf(method)
         response = null
         currentURL = url
         
-        System.out.println "Making request: $url A"
         if (currentAuthInfo) {
             // @todo We could use htmlunit auth stuff here?
             def encoded = Base64Codec.encode("${currentAuthInfo.user}:${currentAuthInfo.credentials}".getBytes('utf-8'))
             settings.addAdditionalHeader('Authorization', "Basic "+encoded)
         }
 
-        System.out.println "Making request: $url B"
         def wrapper
         if (paramSetupClosure) {
             def builder = new RequestBuilder(settings)
             wrapper = builder.build(paramSetupClosure)
         }
     
-        System.out.println "Making request: $url C"
         def headerLists = [stickyHeaders]
         if (wrapper) {
             headerLists << wrapper.headers
@@ -255,7 +252,6 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
             }
         }
 
-        System.out.println "Making request: $url D"
         if (wrapper?.reqParameters) {
             def params = []
             wrapper.reqParameters.each { pair ->
@@ -267,15 +263,14 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         if (wrapper?.body) {
             settings.requestBody = wrapper.body
         }
-        System.out.println "Making request: $url D"
         TestUtils.dumpRequestInfo(this)
 
-        System.out.println "Making request: $url E"
-        response = _client.loadWebResponse(settings)
         mainWindow = _client?.currentWindow        
-        System.out.println "Making request: $url F"
-        _page = _client.loadWebResponseInto(response, mainWindow)
-        System.out.println "Making request: $url G"
+        System.err.println "Loading response..."
+        response = _client.loadWebResponse(settings)
+        System.err.println "Done loading response..."
+        _client.loadWebResponseInto(response, mainWindow)
+        System.err.println "Loading response into window gave page ${_page}"
         
         // By this time the events will have been triggered
     } 

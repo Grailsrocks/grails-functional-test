@@ -162,6 +162,10 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         super.tearDown()
     }
     
+    PrintStream getInteractiveOut() {
+        System.out
+    }
+    
     PrintStream getTestReportOut() {
         System.out
     }

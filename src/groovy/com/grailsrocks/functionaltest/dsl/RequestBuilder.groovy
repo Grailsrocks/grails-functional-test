@@ -128,7 +128,7 @@ class RequestBuilder {
         switch (name) {
             case 'headers': return this.@___data.headers
             case 'settings': return this.@___clientConfig
-            default: return this.@___clientConfig.reqParametersByName[name]
+            default: return this.@___data.reqParametersByName[name]
         }
     }
 }
