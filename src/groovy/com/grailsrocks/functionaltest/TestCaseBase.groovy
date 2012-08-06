@@ -436,6 +436,10 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         client?.responseAsString
     }
     
+    String getContentType() {
+        client?.responseContentType
+    }
+    
     /**
      * Set the Authorization header
      */

@@ -37,6 +37,14 @@ class BrowserTestCase extends TestCaseBase {
         client.cache.clear()
     }
     
+    boolean getScriptErrorsEnabled() {
+        client.scriptErrorsEnabled
+    }
+    
+    void setScriptErrorsEnabled(boolean enabled) {
+        client.scriptErrorsEnabled = enabled
+    }
+    
     boolean getCookiesEnabled() {
         client.cookieManager.cookiesEnabled
     }

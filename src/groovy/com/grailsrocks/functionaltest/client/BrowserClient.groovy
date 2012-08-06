@@ -79,6 +79,14 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         _client.javaScriptEnabled = enabled
     }
 
+    boolean getScriptErrorsEnabled() {
+        _client.throwExceptionOnScriptError
+    }
+    
+    void setScriptErrorsEnabled(boolean enabled) {
+        _client.throwExceptionOnScriptError = enabled
+    }
+
     void setPopupBlockerEnabled(boolean enabled) {
         _client.popupBlockerEnabled = enabled
     }
