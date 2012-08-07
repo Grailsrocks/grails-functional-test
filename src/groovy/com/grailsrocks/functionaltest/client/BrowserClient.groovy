@@ -199,8 +199,6 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
             _page = event.newPage
             response = _page.webResponse
             
-            System.err.println "PAGE for [${_page.url}] IS A: ${_page}"
-            
             listener.contentChanged( new ContentChangedEvent(
                     client: this, 
                     url: response.webRequest.url,
@@ -266,11 +264,8 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         TestUtils.dumpRequestInfo(this)
 
         mainWindow = _client?.currentWindow        
-        System.err.println "Loading response..."
         response = _client.loadWebResponse(settings)
-        System.err.println "Done loading response..."
         _client.loadWebResponseInto(response, mainWindow)
-        System.err.println "Loading response into window gave page ${_page}"
         
         // By this time the events will have been triggered
     } 

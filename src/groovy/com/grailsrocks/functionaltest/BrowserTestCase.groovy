@@ -226,10 +226,12 @@ class BrowserTestCase extends TestCaseBase {
 	/**
 	 * Clicks an element, finding the link/button by first the id attribute, or failing that the clickable text of the link.
 	 */
-	def click(anchor) {
-	    def a = byId(anchor)
+	def click(idOrAnchorOrButtonText) {
+	    def a = byId(idOrAnchorOrButtonText)
 	    try {
-	        if (!a) a = page.getAnchorByText(anchor)
+	        if (!a) {
+	            a = page.getAnchorByText(idOrAnchorOrButtonText)
+            }
         } catch (ElementNotFoundException e) {
         }
         if (!a) {

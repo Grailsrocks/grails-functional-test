@@ -91,32 +91,32 @@ class FormWrapper {
     /**
      * Find form element by id, name or value
      */
-    private handleFormClick(idOrNameOrValue) {
+    private handleFormClick(idOrNameOrValueOrText) {
         def f
-        f = test.byId(idOrNameOrValue) 
+        f = test.byId(idOrNameOrValueOrText) 
         if (!f) {
-            def fieldsByName = form.getInputsByName(idOrNameOrValue)
-            if (fieldsByName.size() > 1) {
-                throw new IllegalArgumentException("Unable to 'click' element named '$idOrNameOrValue', multiple elements with that name found, try clicking by value")
-            } else if (fieldsByName.size()) {
-                f = fieldsByName[0]
+            def candidates = form.htmlElementDescendants
+            f = candidates.find { n ->
+                if (n.tagName == 'input') {
+                    if (n.getAttribute('type') == 'submit') {
+                        return n.getAttribute('value') == idOrNameOrValueOrText
+                    } else {
+                        return false
+                    }
+                } else if (n.tagName in ['button', 'a']) {
+                    return n.textContent.trim() == idOrNameOrValueOrText.trim()
+                }
             }
         }
         if (!f) {
-            def inputs = form.getInputsByValue(idOrNameOrValue)[0]
+            throw new IllegalArgumentException("Unable to 'click' element named '$idOrNameOrValueOrText', no elements with that name or text found, try clicking by value or id")
         }
-        if (f) {
-            System.out.println "Clicked [$idOrNameOrValue] which resolved to a [${f.class}]"
-            f.click() 
-            // Events are triggered 
+        System.out.println "Clicked [$idOrNameOrValueOrText] which resolved to a [${f.class}]"
+        f.click() 
+        // Events are triggered 
 
-            // Now let's see if it was a redirect
-            this.@test.handleRedirects()
-        }
-        else {
-            throw new IllegalArgumentException("Unable to 'click' element named '$idOrNameOrValue', clickable element not found")
-        }
-        return
+        // Now let's see if it was a redirect
+        this.@test.handleRedirects()
     }
 
     void click(String idOrNameOrValue) {
