@@ -231,7 +231,7 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         if (currentAuthInfo) {
             // @todo We could use htmlunit auth stuff here?
             def encoded = Base64Codec.encode("${currentAuthInfo.user}:${currentAuthInfo.credentials}".getBytes('utf-8'))
-            settings.addAdditionalHeader('Authorization', "Basic "+encoded)
+            settings.setAdditionalHeader('Authorization', "Basic "+encoded)
         }
 
         def wrapper
@@ -246,7 +246,7 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         }
         headerLists.each { headers ->
             for (entry in headers) { 
-                settings.addAdditionalHeader(entry.key, entry.value.toString())
+                settings.setAdditionalHeader(entry.key, entry.value.toString())
             }
         }
 
