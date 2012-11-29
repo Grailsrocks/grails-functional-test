@@ -116,7 +116,7 @@ class RequestBuilder {
         this.@___data.headers['Content-Type'] = type
     }
     
-    def missingMethod(String name, args) {
+    def methodMissing(String name, args) {
         if (args.size() == 1) {
             this[name] = args[1]
         } else {
