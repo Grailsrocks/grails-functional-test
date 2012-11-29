@@ -318,8 +318,14 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
             assertContentType(args.contentType)
         }
         if (args.contentTypeStrict) {
-            assertContentTypeString(args.contentTypeStrict)
+            assertContentTypeStrict(args.contentTypeStrict)
         }
+		if (args.charset) {
+			assertCharset(args.charset)
+		}
+		if (args.charsetStrict) {
+			assertCharsetStrict(args.charsetStrict)
+		}
         if (args.redirectUrl) {
             assertRedirectUrl(args.redirectUrl)
         }
@@ -371,9 +377,17 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
 	void assertContentTypeStrict(String expected) {
 	    assertEquals expected, client.responseContentType
 	}
-
+	
 	void assertContentType(String expected) {
 	    assertTrue "Expected content type to match [${expected}]", stripWS(client.responseContentType.toLowerCase()).startsWith(stripWS(expected?.toLowerCase()))
+	}
+	
+	void assertCharsetStrict(String expected) {
+		assertEquals expected, client.responseCharset
+	}
+	
+	void assertCharset(String expected) {
+		assertTrue "Expected charset type to match [${expected}]", stripWS(client.responseCharset.toLowerCase()).startsWith(stripWS(expected?.toLowerCase()))
 	}
 
 	void assertHeader(String header, String expected) {

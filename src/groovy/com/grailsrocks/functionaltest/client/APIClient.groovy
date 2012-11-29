@@ -84,12 +84,12 @@ class APIClient implements Client {
         }
         
         //@todo THIS IS BROKEN at least for GET it seems, no params make it to server
-        if (wrapper?.reqParameters) {
+		if (wrapper?.reqParameters) {
             // @todo RESTClient doesn't like if you use query and queryString together it seems
             clientArgs.query = [:]
             wrapper.reqParameters.each { pair ->
                 clientArgs.query[pair[0]] = pair[1].toString()
-            }
+            }			
         }
 
         def requestType = "application/binary"
@@ -209,8 +209,13 @@ class APIClient implements Client {
     }
 
     String getResponseContentType() {
-        response.contentType
+        response?.contentType
     }
+	
+	String getResponseCharset() {
+		//TODO response is a HttpResponseDecorator
+		response?.contentType
+	}	
 
     String getResponseHeader(String name) {
         response.headers[name]?.value
