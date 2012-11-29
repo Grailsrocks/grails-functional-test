@@ -36,6 +36,7 @@ import com.grailsrocks.functionaltest.util.TestUtils
 import junit.framework.AssertionFailedError
 
 import com.grailsrocks.functionaltest.client.*
+import org.codehaus.groovy.grails.web.json.JSONElement
 
 abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, ClientAdapter {
 
@@ -425,8 +426,8 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         
         return response.contentAsString.decodeJSON()
     }
-*/    
-    GPathResult getJSON() {
+*/
+    JSONElement getJSON() {
         assertContentType contentTypeForJSON
         grails.converters.JSON.parse(client.responseAsString)
     }
