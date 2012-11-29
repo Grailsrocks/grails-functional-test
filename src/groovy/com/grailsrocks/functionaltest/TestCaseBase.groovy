@@ -349,7 +349,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
 	    if (redirectEnabled) {
 	        throw new IllegalStateException("Asserting redirect, but you have not disabled redirects. Do redirectEnabled = false first, then call followRedirect() after asserting.")
 	    }
-	    if (!HTTPUtils.isRedirectStatus(client.responseStatusCode)) {
+	    if (!HTTPUtils.isRedirectStatus(client.responseStatus)) {
 	        throw new AssertionFailedError("Asserting redirect, but response was not a valid redirect status code")
 	    }
 	    assertEquals expected, redirectUrl
