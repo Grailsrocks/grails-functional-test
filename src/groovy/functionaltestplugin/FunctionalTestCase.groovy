@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2008-2009 the original author or authors.
  *
@@ -17,7 +16,7 @@
  * The original code of this plugin was developed by Historic Futures Ltd.
  * (www.historicfutures.com) and open sourced.
  */
- 
+
 package functionaltestplugin
 
 import com.grailsrocks.functionaltest.BrowserTestCase

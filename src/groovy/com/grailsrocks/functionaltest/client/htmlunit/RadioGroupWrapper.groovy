@@ -22,14 +22,14 @@ package com.grailsrocks.functionaltest.client.htmlunit
 class RadioGroupWrapper {
     List radioButtons
     String fieldName
-    
+
     RadioGroupWrapper(fieldName, radioButtons) {
         this.radioButtons = radioButtons
         this.fieldName = fieldName
     }
-    
+
     void setChecked(String value) {
-        System.out.println("Checking radio button [$value] on field [name:${fieldName}]") 
+        println("Checking radio button [$value] on field [name:${fieldName}]")
         def radio = radioButtons.find { it.value == value }
         if (radio) {
             radio.checked = true
@@ -39,7 +39,6 @@ class RadioGroupWrapper {
     }
 
     String getChecked() {
-        def radio = radioButtons.find { it.checked }
-        return radio ? radio.value : null;
+        return radioButtons.find { it.checked }?.value
     }
 }

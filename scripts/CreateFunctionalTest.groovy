@@ -15,22 +15,19 @@
  */
 
 /**
- * Gant script that creates a functional test
- * 
+ * Creates a functional test.
+ *
  * @author Marc Palmer
  */
- 
-
-import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
 
 includeTargets << grailsScript("_GrailsInit")
 includeTargets << grailsScript("_GrailsCreateArtifacts")
 
-target ('default': "Creates a new Grails functional test.") {
-	depends( checkVersion, parseArguments, createFunctionalTest )
-}                            
+target (createFunctionalTest: "Creates a new Grails functional test.") {
+    depends( checkVersion, parseArguments )
 
-target (createFunctionalTest: "Implementation of create-functional-test") {
-    def superClass = "functionaltestplugin.FunctionalTestCase"
-	createArtifact(name: argsMap["params"][0], suffix: "FunctionalTests", type: "FunctionalTest", path: "test/functional", superClass: superClass)
+    String superClass = "functionaltestplugin.FunctionalTestCase"
+    createArtifact(name: argsMap["params"][0], suffix: "FunctionalTests", type: "FunctionalTest", path: "test/functional", superClass: superClass)
 }
+
+setDefaultTarget createFunctionalTest

@@ -17,15 +17,13 @@
  * (www.historicfutures.com) and open sourced.
  */
 
-import groovy.mock.interceptor.StubFor
-
-import com.gargoylesoftware.htmlunit.WebClient
-import com.gargoylesoftware.htmlunit.util.NameValuePair
-import com.gargoylesoftware.htmlunit.HttpMethod
-
 import functionaltestplugin.FunctionalTestCase
 import functionaltestplugin.TestingUtil
-import com.grailsrocks.functionaltest.FunctionalTestException
+import groovy.mock.interceptor.StubFor
+
+import com.gargoylesoftware.htmlunit.HttpMethod
+import com.gargoylesoftware.htmlunit.WebClient
+import com.gargoylesoftware.htmlunit.util.NameValuePair
 
 class SimpleHttpTestCaseTests extends GroovyTestCase {
 
@@ -195,7 +193,7 @@ class SimpleHttpTestCaseTests extends GroovyTestCase {
     void testGoogleSearchNamedSubmitField() {
         def code = {
             redirectEnabled = true
-            javaScriptEnabled = false 
+            javaScriptEnabled = false
             get 'http://google.com'
 
             assertStatus 200
@@ -309,31 +307,31 @@ class SimpleHttpTestCaseTests extends GroovyTestCase {
         }
         TestingUtil.runTestScript(code)
     }
-    
+
     void testTwoNamedClients() {
         def code = {
             client "A"
-            
+
             get 'file:test/resources/a.html'
 
             assertStatus 200
             assertContentContains "File A"
-            
+
             client "B"
-            
+
             get 'file:test/resources/b.html'
 
             assertStatus 200
             assertContentContains "File B"
 
             client "A"
-            
+
             assertContentContains "File A"
         }
         TestingUtil.runTestScript(code)
     }
 
-/*    
+/*
     void testWaitForJS() {
         def code = {
             get 'file:test/resources/bgjs.html'
@@ -428,7 +426,7 @@ class SimpleHttpTestCaseTests extends GroovyTestCase {
 
 */    }
 
-    /*	
+    /*
          Hmm how to mock HtmlPage which has no default ctor?
      void testFindingForms() {
          def mockPage = new StubFor(HtmlPage)
