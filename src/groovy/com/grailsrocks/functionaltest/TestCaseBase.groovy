@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2008-2009 the original author or authors.
  *
@@ -19,36 +18,30 @@
  */
 package com.grailsrocks.functionaltest
 
-import org.codehaus.groovy.runtime.InvokerHelper
-import org.codehaus.groovy.runtime.StackTraceUtils
-import groovy.util.slurpersupport.GPathResult
-
-import java.net.URLEncoder
-
-import grails.util.GrailsUtil
 import grails.converters.JSON
 import grails.converters.XML
-import grails.util.Environment
-
-import com.grailsrocks.functionaltest.util.HTTPUtils
-import com.grailsrocks.functionaltest.util.TestUtils
-
+import groovy.util.slurpersupport.GPathResult
 import junit.framework.AssertionFailedError
 
-import com.grailsrocks.functionaltest.client.*
 import org.codehaus.groovy.grails.web.json.JSONElement
+import org.codehaus.groovy.runtime.InvokerHelper
+import org.codehaus.groovy.runtime.StackTraceUtils
+
+import com.grailsrocks.functionaltest.client.*
+import com.grailsrocks.functionaltest.util.HTTPUtils
+import com.grailsrocks.functionaltest.util.TestUtils
 
 abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, ClientAdapter {
 
     static MONKEYING_DONE
-    
+
     static BORING_STACK_ITEMS = [
-        'FunctionalTests', 
-        'functionaltestplugin.', 
-        'gant.', 
-        'com.gargoylesoftware', 
+        'FunctionalTests',
+        'functionaltestplugin.',
+        'gant.',
+        'com.gargoylesoftware',
         'org.apache']
-    
+
     static {
         StackTraceUtils.addClassTest { className ->
             if (BORING_STACK_ITEMS.find { item ->
@@ -60,7 +53,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
             }
         }
     }
-    
+
     def baseURL // populated via test script
     def urlStack = new ArrayList()
     boolean autoFollowRedirects = true
@@ -69,27 +62,27 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
     private String currentClientId
     Client currentClient
     def redirectUrl
-    
+
     def contentTypeForJSON = 'application/json'
     def contentTypeForXML = 'text/xml'
-    
+
     protected void setUp() {
         super.setUp()
-                
+
         baseURL = System.getProperty('grails.functional.test.baseURL')
-        
+
         if (!MONKEYING_DONE) {
             BrowserClient.initVirtualMethods()
             MONKEYING_DONE = true
         }
-        
+
         if (!consoleOutput) {
             consoleOutput = System.out
         }
     }
 
     abstract Class getDefaultClientType()
-    
+
     Client getClient() {
         if (!currentClient) {
             client('default')
@@ -105,14 +98,14 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
     boolean isRedirectEnabled() {
         autoFollowRedirects
     }
-    
+
     void setRedirectEnabled(boolean enabled) {
         autoFollowRedirects = enabled
     }
 
     boolean __isDSLMethod(String name) {
-        name.startsWith('assert') || 
-        name.startsWith('shouldFail') || 
+        name.startsWith('assert') ||
+        name.startsWith('shouldFail') ||
         name.startsWith('fail') ||
         name == 'client' ||
         name == 'defaultClientType'
@@ -127,7 +120,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
             // If we were currently unnamed but have some state, save our state with name ""
             stashClient(currentClientId ?: '')
             currentClient = null
-            // restore client if it is known, else 
+            // restore client if it is known, else
             unstashClient(id)
             if (!currentClient) {
                 // Creat new
@@ -138,7 +131,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         }
         currentClientId = id
     }
-    
+
     String getCurrentClientId() {
         this.@currentClientId
     }
@@ -153,24 +146,24 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         if (c) {
             currentClient = c
         }
-        
+
         clientChanged()
     }
-    
+
     protected void tearDown() {
         currentClient = null
         consoleOutput.println('') // force newline
         super.tearDown()
     }
-    
+
     PrintStream getInteractiveOut() {
         System.out
     }
-    
+
     PrintStream getTestReportOut() {
         System.out
     }
-    
+
     def invokeMethod(String name, args) {
         def t = this
         // Let's not mess with internal calls, or it is a nightmare to debug
@@ -188,7 +181,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
             return InvokerHelper.getMetaClass(this).invokeMethod(this,name,args)
         }
     }
-    
+
     protected __sanitize(Throwable t) {
         StackTraceUtils.deepSanitize(t)
     }
@@ -203,31 +196,31 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         }
         def out = consoleOutput ?: System.out
         out.println "\nFailed: ${msg}"
-        e.printStackTrace(out) 
+        e.printStackTrace(out)
         if (e.cause) {
             out.println "\nFailed: ${msg}"
-            e.cause.printStackTrace(out) 
+            e.cause.printStackTrace(out)
         }
         // Write to output capture file
-        //System.out.println "\nFailed: ${msg}"
+        //println "\nFailed: ${msg}"
         if (urlStack) {
             out.println "URL: ${urlStack[-1].url}"
         }
         out.println ""
     }
-    
+
     void followRedirect() {
 	    if (redirectEnabled) {
 	        throw new IllegalStateException("Trying to followRedirect() but you have not disabled automatic redirects so I can't! Do redirectEnabled = false first, then call followRedirect() after asserting.")
 	    }
         doFollowRedirect()
     }
-    
+
     protected void doFollowRedirect() {
         def u = redirectUrl
         if (u) {
             get(u) // @todo should be same HTTP method as previous request?
-            System.out.println("Followed redirect to $u")
+            println("Followed redirect to $u")
         } else {
             throw new IllegalStateException('The last response was not a redirect, so cannot followRedirect')
         }
@@ -239,7 +232,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         }
         return url
     }
-    
+
     URL makeRequestURL(url) {
         def reqURL
         url = url.toString()
@@ -251,10 +244,10 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
                 base = forceTrailingSlash(baseURL)
                 url -= '/'
             } else {
-                base = client.currentURL ? client.currentURL : baseURL                 
+                base = client.currentURL ? client.currentURL : baseURL
             }
             reqURL = new URL(new URL(base), url.toString())
-        }        
+        }
         return reqURL
     }
 
@@ -269,11 +262,11 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
     def doRequest(String url, String method, Closure paramSetup = null) {
         // @todo build URL like we used to, relative to the app:
         URL u = makeRequestURL(url)
-        
+
         redirectUrl = null
 	    client.request(u, method, paramSetup)
     }
-    
+
 	def get(url, Closure paramSetup = null) {
 	    doRequest(url, 'GET', paramSetup)
 	}
@@ -281,15 +274,15 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
 	def post(url, Closure paramSetup = null) {
 	    doRequest(url, 'POST', paramSetup)
 	}
-	
+
 	def delete(url, Closure paramSetup = null) {
 	    doRequest(url, 'DELETE', paramSetup)
 	}
-	
+
 	def put(url, Closure paramSetup = null) {
 	    doRequest(url, 'PUT', paramSetup)
 	}
-	
+
 	void assertContentDoesNotContain(String expected) {
 	    assertFalse "Expected content to not loosely contain [$expected] but it did".toString(), stripWS(client.responseAsString?.toLowerCase()).contains(stripWS(expected?.toLowerCase()))
 	}
@@ -339,13 +332,13 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
             assertContentContainsStrict(args.contentContainsStrict)
         }
     }
-    
+
 	void assertStatus(int status) {
 	    def msg = "Expected HTTP status [$status] but was [${client.responseStatus}]"
 	    if (HTTPUtils.isRedirectStatus(client.responseStatus)) msg += " (received a redirect to ${redirectUrl})"
 	    assertTrue msg.toString(), status == client.responseStatus
 	}
-    
+
 	void assertRedirectUrl(String expected) {
 	    if (redirectEnabled) {
 	        throw new IllegalStateException("Asserting redirect, but you have not disabled redirects. Do redirectEnabled = false first, then call followRedirect() after asserting.")
@@ -392,7 +385,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
 	    assertTrue "Expected header [$header] to strictly match [${expected}]", client.getResponseHeader(header)?.contains(expected)
 	}
 
-    /** 
+    /**
      * Make sure a domain object exists in the target system
      * Relies on access to our testing controller
      * @todo don't use get for this! it screws up url stack
@@ -404,12 +397,12 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
             findField = args.findBy
             findValue = args.value
         }
-        
+
         assertStatus 200
     }
 */
 
-    /** 
+    /**
      * Make sure a domain object exists in the target system
      * Relies on access to our testing controller
      * @todo don't use get for this! it screws up url stack
@@ -421,9 +414,9 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
             findField = args.findBy
             findValue = args.value
         }
-        
+
         assertStatus 200
-        
+
         return response.contentAsString.decodeJSON()
     }
 */
@@ -436,15 +429,15 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         assertContentType contentTypeForXML
         grails.converters.XML.parse(client.responseAsString)
     }
-    
+
     String getContent() {
         client?.responseAsString
     }
-    
+
     String getContentType() {
         client?.responseContentType
     }
-    
+
     /**
      * Set the Authorization header
      */
@@ -452,14 +445,14 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         println "Authentication set to: Basic $user:$pass"
         client.setAuth('Basic', user, pass)
     }
-    
+
     /**
      * Set the Authorization header
      */
     void clearAuth() {
         client.clearAuth()
     }
-    
+
     /**
      * Load a fixture into the app using the fixtures plugin
      */
@@ -469,11 +462,11 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
             throw new UnsupportedOperationException("Cannot load fixture [$name], the application replied with: [{}$result.error}]")
         }
     }
-    
+
     def URLEncode(x) {
         URLEncoder.encode(x.toString(), 'utf-8')
     }
-    
+
     /**
      * Send a request to the test data controller that this plugin injects into non-production apps
      * @param action The name of the controller action to execute eg findObject
@@ -484,7 +477,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         def args = (params.collect { k, v -> k+'='+URLEncode(v) }).join('&')
         grails.converters.JSON.parse(makeRequestURL("/functionaltesting/$action?$args").text)
     }
-    
+
     /**
      * Assert that the mock mail system has a mail matching the specified args
      */
@@ -500,7 +493,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         }
     }
 
-    /** 
+    /**
      * Clear the greenmail email queue.
      * @todo should do this after every test run from the test runner
      */
@@ -508,17 +501,17 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         def result = makeRequestURL('/greenmail/clear').text
     }
 
-    /** 
+    /**
      * Extract the first match from the contentAsString using the supplied regex
      */
     String extract(regexPattern) {
         def m = client.responseAsString =~ regexPattern
         return m ? m[0][1] : null
     }
-    
+
 /*
 	void assertXML(String xpathExpr, expectedValue) {
-		
+
 	}
 */
     String stripWS(String s) {
@@ -528,11 +521,11 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         }
         r.toString()
     }
-    
+
     protected newResponseReceived(Client client) {
         if (HTTPUtils.isRedirectStatus(client.responseStatus)) {
             redirectUrl = client.getResponseHeader('Location')
-            System.out.println("Response was a redirect to ${redirectUrl} ${'<'*20}")
+            println("Response was a redirect to ${redirectUrl} ${'<'*20}")
         } else {
             redirectUrl = null
         }
@@ -548,14 +541,12 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
      */
     void contentChanged(ContentChangedEvent event) {
         newResponseReceived(event.client)
-        
-        // params.method ? params.method.toString()+' ' : 
+
+        // params.method ? params.method.toString()+' ' :
         consoleOutput.print '#'
         while(urlStack.size() >= 50){ // only keep a window of the last 50 urls
             urlStack.remove(0)
         }
         urlStack << event
-    }    
+    }
 }
-
-

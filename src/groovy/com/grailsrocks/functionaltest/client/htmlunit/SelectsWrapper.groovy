@@ -16,20 +16,20 @@
  * The original code of this plugin was developed by Historic Futures Ltd.
  * (www.historicfutures.com) and open sourced.
  */
- 
+
 package com.grailsrocks.functionaltest.client.htmlunit
 
-import com.gargoylesoftware.htmlunit.html.HtmlForm
 import com.gargoylesoftware.htmlunit.ElementNotFoundException
+import com.gargoylesoftware.htmlunit.html.HtmlForm
 
 class SelectsWrapper {
     HtmlForm form
-    
+
     SelectsWrapper(HtmlForm form) { this.form = form }
-    
-    def getProperty(String key) { 
+
+    def getProperty(String key) {
         try {
-            return form.getSelectByName(key) 
+            return form.getSelectByName(key)
         } catch (ElementNotFoundException e) {
             return null
         }

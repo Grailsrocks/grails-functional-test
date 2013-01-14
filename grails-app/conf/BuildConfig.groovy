@@ -7,14 +7,16 @@ grailsSettings.runtimeDependencies.addAll xmlJars
 grailsSettings.testDependencies.addAll xmlJars
 */
 
-grails.project.dependency.resolution = {
-   inherits "global"
-   
-	repositories {        
-//	    grailsRepo 'http://grails.org/plugins' 
-        
-        grailsPlugins()
+grails.project.work.dir = 'target'
 
+grails.project.dependency.resolution = {
+    inherits "global"
+    log 'warn'
+
+    repositories {
+        grailsCentral()
+
+        mavenLocal()
         mavenCentral()
         mavenRepo "http://repository.codehaus.org"
         mavenRepo "http://repository.jboss.org/maven2" // For SAC
@@ -33,7 +35,7 @@ grails.project.dependency.resolution = {
         compile( 'org.apache.httpcomponents:httpclient:4.2.1') {
             excludes 'xml-apis', 'xerces'
         }
-        
+
         test( 'commons-codec:commons-codec:1.6') {
             excludes 'xml-apis', 'xerces'
         }
@@ -58,11 +60,10 @@ grails.project.dependency.resolution = {
         test( 'org.w3c.css:sac:1.3') {
             excludes 'xml-apis', 'xerces'
         }
-        
     }
 
     plugins {
-        build( ":tomcat:$grailsVersion", ':release:2.1.0') {
+        build( ":tomcat:$grailsVersion", ':release:2.2.0', ':rest-client-builder:1.0.3') {
             export = false
         }
     }

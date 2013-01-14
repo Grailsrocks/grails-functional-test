@@ -18,17 +18,17 @@
  */
 package com.grailsrocks.functionaltest.client.htmlunit
 
-import com.gargoylesoftware.htmlunit.html.HtmlSelect
-import com.gargoylesoftware.htmlunit.html.HtmlRadioButtonInput
-import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput
-import com.gargoylesoftware.htmlunit.html.HtmlInput
-import com.gargoylesoftware.htmlunit.html.HtmlTextArea
 import com.gargoylesoftware.htmlunit.html.HtmlButton
 import com.gargoylesoftware.htmlunit.html.HtmlButtonInput
-import com.gargoylesoftware.htmlunit.html.HtmlResetInput
-import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput
+import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput
 import com.gargoylesoftware.htmlunit.html.HtmlFileInput
 import com.gargoylesoftware.htmlunit.html.HtmlImageInput
+import com.gargoylesoftware.htmlunit.html.HtmlInput
+import com.gargoylesoftware.htmlunit.html.HtmlRadioButtonInput
+import com.gargoylesoftware.htmlunit.html.HtmlResetInput
+import com.gargoylesoftware.htmlunit.html.HtmlSelect
+import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput
+import com.gargoylesoftware.htmlunit.html.HtmlTextArea
 
 class FormWrapper {
     def form
@@ -37,15 +37,15 @@ class FormWrapper {
     def selects
     def fieldPrefixStack = new ArrayList()
     def test
-    
+
     static BUTTON_CLASSES = [
-        HtmlSubmitInput, 
-        HtmlResetInput, 
-        HtmlButton, 
+        HtmlSubmitInput,
+        HtmlResetInput,
+        HtmlButton,
         HtmlButtonInput,
         HtmlImageInput
     ]
-    
+
     FormWrapper(test, form) {
         this.@test = test
         this.@form = form
@@ -53,38 +53,38 @@ class FormWrapper {
         this.@selects = new SelectsWrapper(form)
         this.@radioButtons = new RadioButtonsWrapper(form)
     }
-    
+
     // Get any kind of field's value, if not explicitly scoped
     def getProperty(String name) {
         switch (name) {
-            case 'fields': return fields;
-            case 'selects': return selects;
-            case 'radioButtons': return radioButtons;
-            default: 
+            case 'fields': return fields
+            case 'selects': return selects
+            case 'radioButtons': return radioButtons
+            default:
                 def f = findField(name)
                 if (f) {
                     return getFieldValue(f)
                 } else {
                     throw new IllegalArgumentException("Unable to get field value, there is no element with name or id [$name]")
-                } 
+                }
         }
     }
 
-    // Set the value of any kind of field, 
+    // Set the value of any kind of field,
     void setProperty(String name, value) {
         switch (name) {
-            case 'fields': 
-            case 'selects': 
-            case 'radioButtons': 
+            case 'fields':
+            case 'selects':
+            case 'radioButtons':
                 throw new RuntimeException("Property $name is read-only")
-            default: 
+            default:
                 def f = findField(name)
                 if (f) {
                     setFieldValue(f, value)
                 } else {
                     throw new IllegalArgumentException("Unable to set field value, there is no element with name or id [$name]")
                 }
-                break;
+                break
         }
     }
 
@@ -93,7 +93,7 @@ class FormWrapper {
      */
     private handleFormClick(idOrNameOrValueOrText) {
         def f
-        f = test.byId(idOrNameOrValueOrText) 
+        f = test.byId(idOrNameOrValueOrText)
         if (!f) {
             def candidates = form.htmlElementDescendants
             f = candidates.find { n ->
@@ -111,9 +111,9 @@ class FormWrapper {
         if (!f) {
             throw new IllegalArgumentException("Unable to 'click' element named '$idOrNameOrValueOrText', no elements with that name or text found, try clicking by value or id")
         }
-        System.out.println "Clicked [$idOrNameOrValueOrText] which resolved to a [${f.class}]"
-        f.click() 
-        // Events are triggered 
+        println "Clicked [$idOrNameOrValueOrText] which resolved to a [${f.class}]"
+        f.click()
+        // Events are triggered
 
         // Now let's see if it was a redirect
         this.@test.handleRedirects()
@@ -134,24 +134,24 @@ class FormWrapper {
             args[0].call()
             // no longer re-entrant (phew)
             fieldPrefixStack.pop()
-            return null;
+            return null
         }
-        
+
         def fqn = ''
-        if (fieldPrefixStack) fqn = fieldPrefixStack.inject('') { output, value -> output += value + '.'; return output; }
+        if (fieldPrefixStack) fqn = fieldPrefixStack.inject('') { output, value -> output += value + '.'; return output }
         fqn += name
-        
+
         def f = findField(fqn)
         if (f) {
             if (args?.size() == 1) {
                 if (args[0] instanceof Map) {
                     args[0].each { k, v ->
                         f[k] = v
-                    } 
+                    }
                 } else {
                     setFieldValue(f, args[0])
                 }
-            } else throw new MissingMethodException(name, this.class, args)
+            } else throw new MissingMethodException(name, getClass(), args)
             return f
         } else throw new IllegalArgumentException("No field could be found with name '$name'")
     }
@@ -160,22 +160,22 @@ class FormWrapper {
         // Note this switch is polymorphic, order of cases is IMPORTANT
         switch (f.class) {
             case BUTTON_CLASSES:
-            case HtmlFileInput.class:
+            case HtmlFileInput:
                 throw new RuntimeException("You cannot set elements of type [${f.class}], call methods or set properties on them instead")
-            case HtmlSelect.class:
+            case HtmlSelect:
                 f.select(v)
-                break;
-            case HtmlRadioButtonInput.class:
+                break
+            case HtmlRadioButtonInput:
                 f.checked = v.toString()
-                break;
-            case HtmlCheckBoxInput.class:
+                break
+            case HtmlCheckBoxInput:
                 f.checked = Boolean.valueOf(v)
-                break;
-            case HtmlTextArea.class:
-            case HtmlInput.class:
+                break
+            case HtmlTextArea:
+            case HtmlInput:
                 f.value = v
-                break;
-            case RadioGroupWrapper.class:
+                break
+            case RadioGroupWrapper:
                 return f.checked = v
             default:
                 throw new RuntimeException("You cannot set elements of type [${f.class}], call methods or set properties on them instead")
@@ -186,24 +186,24 @@ class FormWrapper {
         // Note this switch is polymorphic, order of cases is IMPORTANT
         switch (f.class) {
             case BUTTON_CLASSES:
-            case HtmlFileInput.class:
+            case HtmlFileInput:
                 return f // return the field object itself, not its value
-            case HtmlSelect.class:
+            case HtmlSelect:
                 return f.selected
-            case HtmlRadioButtonInput.class:
+            case HtmlRadioButtonInput:
                 return f.checked
-            case HtmlCheckBoxInput.class:
+            case HtmlCheckBoxInput:
                 return f.checked
-            case HtmlTextArea.class:
-            case HtmlInput.class:
+            case HtmlTextArea:
+            case HtmlInput:
                 return f.value
-            case RadioGroupWrapper.class:
+            case RadioGroupWrapper:
                 return f.checked
             default:
                 throw new RuntimeException("Don't know how to get a value from form element of type [${f.class}]")
         }
     }
-    
+
     private findField(name) {
         def f = this.@radioButtons[name]
         if (f == null) {
@@ -213,14 +213,14 @@ class FormWrapper {
         if (f == null) {
             f = this.@fields[name]
         }
-        // Try for any input button by value 
+        // Try for any input button by value
         if (f == null) {
             f = form.getInputsByValue(name)?.find { FormWrapper.BUTTON_CLASSES.contains(it.class) }
         }
         if (!f)
             throw new IllegalArgumentException(
                 "No field with name [$name] could be found in form [name:${form.nameAttribute} id:${form.id}]")
-         
-        return f;
+
+        return f
     }
 }

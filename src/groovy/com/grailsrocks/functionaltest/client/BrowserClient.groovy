@@ -1,38 +1,29 @@
 package com.grailsrocks.functionaltest.client
 
-import com.gargoylesoftware.htmlunit.WebRequest
-import com.gargoylesoftware.htmlunit.util.NameValuePair
-import com.gargoylesoftware.htmlunit.WebClient
-import com.gargoylesoftware.htmlunit.WebWindowEvent
-import com.gargoylesoftware.htmlunit.WebWindowListener
-import com.gargoylesoftware.htmlunit.html.HtmlPage
-import com.gargoylesoftware.htmlunit.html.HtmlInput
-import com.gargoylesoftware.htmlunit.html.HtmlForm
-import com.gargoylesoftware.htmlunit.html.HtmlSelect
-import com.gargoylesoftware.htmlunit.html.HtmlTextArea
-import com.gargoylesoftware.htmlunit.html.HtmlRadioButtonInput
-import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput
-import com.gargoylesoftware.htmlunit.HttpMethod
-import com.gargoylesoftware.htmlunit.ElementNotFoundException
-import com.gargoylesoftware.htmlunit.BrowserVersion
-import com.gargoylesoftware.htmlunit.html.HtmlAttributeChangeListener
-import com.gargoylesoftware.htmlunit.html.DomChangeListener
-import com.gargoylesoftware.htmlunit.html.HtmlAttributeChangeEvent
-import com.gargoylesoftware.htmlunit.html.DomChangeEvent
-import com.gargoylesoftware.htmlunit.WebWindow
-import com.gargoylesoftware.htmlunit.WebResponse
-import com.gargoylesoftware.htmlunit.Page
-
-import com.grailsrocks.functionaltest.dsl.RequestBuilder
-import com.grailsrocks.functionaltest.client.htmlunit.*
-
-import com.grailsrocks.functionaltest.util.HTTPUtils
-import com.grailsrocks.functionaltest.util.TestUtils
-
 import org.codehaus.groovy.grails.plugins.codecs.Base64Codec
 
+import com.gargoylesoftware.htmlunit.BrowserVersion
+import com.gargoylesoftware.htmlunit.HttpMethod
+import com.gargoylesoftware.htmlunit.WebClient
+import com.gargoylesoftware.htmlunit.WebRequest
+import com.gargoylesoftware.htmlunit.WebWindowEvent
+import com.gargoylesoftware.htmlunit.WebWindowListener
+import com.gargoylesoftware.htmlunit.html.DomChangeEvent
+import com.gargoylesoftware.htmlunit.html.DomChangeListener
+import com.gargoylesoftware.htmlunit.html.HtmlAttributeChangeEvent
+import com.gargoylesoftware.htmlunit.html.HtmlAttributeChangeListener
+import com.gargoylesoftware.htmlunit.html.HtmlForm
+import com.gargoylesoftware.htmlunit.html.HtmlInput
+import com.gargoylesoftware.htmlunit.html.HtmlPage
+import com.gargoylesoftware.htmlunit.html.HtmlSelect
+import com.gargoylesoftware.htmlunit.html.HtmlTextArea
+import com.gargoylesoftware.htmlunit.util.NameValuePair
+import com.grailsrocks.functionaltest.client.htmlunit.*
+import com.grailsrocks.functionaltest.dsl.RequestBuilder
+import com.grailsrocks.functionaltest.util.TestUtils
+
 class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeListener, DomChangeListener {
-    WebRequest settings 
+    WebRequest settings
 
     def interceptingPageCreator = new InterceptingPageCreator(this)
 
@@ -44,7 +35,7 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     Map stickyHeaders = [:]
     def currentAuthInfo
     def currentURL
-    
+
     ClientAdapter listener
 
     BrowserClient(ClientAdapter listener) {
@@ -52,8 +43,8 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         _client = browser ? new WebClient(BrowserVersion[browser]) : new WebClient()
         _client.addWebWindowListener(this)
         _client.redirectEnabled = false // We're going to handle this thanks very much
-        _client.popupBlockerEnabled = true 
-        _client.javaScriptEnabled = true 
+        _client.popupBlockerEnabled = true
+        _client.javaScriptEnabled = true
         _client.throwExceptionOnFailingStatusCode = false
         _client.pageCreator = interceptingPageCreator
     }
@@ -73,7 +64,7 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     boolean getJavaScriptEnabled() {
         _client.javaScriptEnabled
     }
-    
+
     void setJavaScriptEnabled(boolean enabled) {
         _client.javaScriptEnabled = enabled
     }
@@ -81,7 +72,7 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     boolean getScriptErrorsEnabled() {
         _client.throwExceptionOnScriptError
     }
-    
+
     void setScriptErrorsEnabled(boolean enabled) {
         _client.throwExceptionOnScriptError = enabled
     }
@@ -100,7 +91,7 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         } else {
             return ''
         }
-    }    
+    }
 
     /**
      * Set up our magic on the HtmlUnit classes
@@ -119,21 +110,21 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
             new RadioButtonsWrapper(delegate)
         }
         HtmlInput.metaClass.setValue = { value ->
-            System.out.println("Setting value to [$value] on field [name:${delegate.nameAttribute} id:${delegate.id}] of form [${delegate.enclosingForm?.nameAttribute}]") 
+            println("Setting value to [$value] on field [name:${delegate.nameAttribute} id:${delegate.id}] of form [${delegate.enclosingForm?.nameAttribute}]")
             delegate.valueAttribute = value
         }
         HtmlInput.metaClass.getValue = { ->
             return delegate.valueAttribute
         }
         HtmlTextArea.metaClass.setValue = { value ->
-            System.out.println("Setting value to [$value] on text area [name:${delegate.nameAttribute} id:${delegate.id}] of form [${delegate.enclosingForm?.nameAttribute}]") 
+            println("Setting value to [$value] on text area [name:${delegate.nameAttribute} id:${delegate.id}] of form [${delegate.enclosingForm?.nameAttribute}]")
             delegate.text = value
         }
         HtmlTextArea.metaClass.getValue = { ->
             return delegate.text
         }
         HtmlSelect.metaClass.select = { value ->
-            System.out.println("Selecting option [$value] on select field [name:${delegate.nameAttribute} id:${delegate.id}] of form [${delegate.enclosingForm?.nameAttribute}]") 
+            println("Selecting option [$value] on select field [name:${delegate.nameAttribute} id:${delegate.id}] of form [${delegate.enclosingForm?.nameAttribute}]")
             delegate.setSelectedAttribute(value?.toString(), true)
         }
         HtmlSelect.metaClass.deselect = { value ->
@@ -146,20 +137,19 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
 
     void clientChanged() {
     }
-    
+
     int getResponseStatus() {
         response?.statusCode
     }
-    
+
     String getResponseStatusMessage() {
         response?.statusMessage
     }
-    
+
     String getResponseContentType() {
         response?.contentType
     }
-    
-    
+
     void nodeAdded(DomChangeEvent event) {
         println "Added DOM node [${nodeToString(event.changedNode)}] to parent [${nodeToString(event.parentNode)}]"
     }
@@ -167,7 +157,7 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     void nodeDeleted(DomChangeEvent event) {
         println "Removed DOM node [${nodeToString(event.changedNode)}] from parent [${nodeToString(event.parentNode)}]"
     }
-    
+
     void attributeAdded(HtmlAttributeChangeEvent event) {
         def tag = event.htmlElement.tagName
         def name = event.htmlElement.attributes.getNamedItem('name')
@@ -188,28 +178,28 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         def id = event.htmlElement.attributes.getNamedItem('id')
         println "Changed attribute ${event.name} to ${event.value} on tag [${tag}] (id: $id / name: $name)"
     }
-                        
+
     void webWindowClosed(WebWindowEvent event) {
-        
+
     }
-    
+
     void webWindowContentChanged(WebWindowEvent event) {
-        System.out.println "Content of web window [${event?.webWindow}] changed"
+        println "Content of web window [${event?.webWindow}] changed"
         if (event?.webWindow == mainWindow) {
             _page = event.newPage
             response = _page.webResponse
-            
+
             listener.contentChanged( new ContentChangedEvent(
-                    client: this, 
+                    client: this,
                     url: response.webRequest.url,
                     method: response.webRequest.httpMethod,
                     eventSource: 'Browser content change',
                     statusCode: response.statusCode) )
         } else {
-            System.out.println "New content of web window [${event?.webWindow}] was not for main window, ignoring"
+            println "New content of web window [${event?.webWindow}] was not for main window, ignoring"
         }
     }
-    
+
     void webWindowOpened(WebWindowEvent event) {
         // @todo we need to think how to handle multiple windows
     }
@@ -217,17 +207,17 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     String getRequestMethod() {
         settings.httpMethod
     }
-    
+
     String getCurrentURL() {
-        currentURL     
+        currentURL
     }
-    
+
     void request(URL url, String method, Closure paramSetupClosure) {
         settings = new WebRequest(url)
         settings.httpMethod = HttpMethod.valueOf(method)
         response = null
         currentURL = url
-        
+
         if (currentAuthInfo) {
             // @todo We could use htmlunit auth stuff here?
             def encoded = Base64Codec.encode("${currentAuthInfo.user}:${currentAuthInfo.credentials}".getBytes('utf-8'))
@@ -239,13 +229,13 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
             def builder = new RequestBuilder(settings)
             wrapper = builder.build(paramSetupClosure)
         }
-    
+
         def headerLists = [stickyHeaders]
         if (wrapper) {
             headerLists << wrapper.headers
         }
         headerLists.each { headers ->
-            for (entry in headers) { 
+            for (entry in headers) {
                 settings.setAdditionalHeader(entry.key, entry.value.toString())
             }
         }
@@ -253,22 +243,22 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         if (wrapper?.reqParameters) {
             def params = []
             wrapper.reqParameters.each { pair ->
-                params << new NameValuePair(pair[0], pair[1].toString()) 
+                params << new NameValuePair(pair[0], pair[1].toString())
             }
             settings.requestParameters = params
         }
-        
+
         if (wrapper?.body) {
             settings.requestBody = wrapper.body
         }
         TestUtils.dumpRequestInfo(this)
 
-        mainWindow = _client?.currentWindow        
+        mainWindow = _client?.currentWindow
         response = _client.loadWebResponse(settings)
         _client.loadWebResponseInto(response, mainWindow)
-        
+
         // By this time the events will have been triggered
-    } 
+    }
 
     Map getRequestHeaders() {
         settings?.additionalHeaders
@@ -284,22 +274,20 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     String getResponseAsString() {
         response.contentAsString != null ? response.contentAsString : ''
     }
-    
+
     String getResponseHeader(String name) {
         response.getResponseHeaderValue(name)
     }
-    
+
     Map getResponseHeaders() {
         def r = [:]
         for (p in response?.responseHeaders) {
             r[p.name] = p.value
         }
-    }    
+    }
 
     String nodeToString(def n) {
         "[${n?.nodeName}] with value [${n?.nodeValue}] and "+
             "id [${n?.attributes?.getNamedItem('id')?.nodeValue}], name [${n?.attributes?.getNamedItem('name')?.nodeValue}]"
     }
-    
-
 }

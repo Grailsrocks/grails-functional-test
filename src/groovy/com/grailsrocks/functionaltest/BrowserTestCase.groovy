@@ -1,30 +1,30 @@
 package com.grailsrocks.functionaltest
 
 import junit.framework.AssertionFailedError
+
 import com.gargoylesoftware.htmlunit.ElementNotFoundException
 import com.gargoylesoftware.htmlunit.html.HtmlForm
-
 import com.grailsrocks.functionaltest.client.BrowserClient
-import com.grailsrocks.functionaltest.client.htmlunit.*
 import com.grailsrocks.functionaltest.client.Client
+import com.grailsrocks.functionaltest.client.htmlunit.*
 
 class BrowserTestCase extends TestCaseBase {
     Class getDefaultClientType() {
         BrowserClient
     }
-    
+
     boolean __isDSLMethod(String name) {
         if (super.__isDSLMethod(name)) {
             return true
         }
-        
+
         name.startsWith('by') ||
         name == 'back' ||
         name == 'form' ||
         name == 'click' ||
         name == 'clearCache'
     }
-    
+
     void setBrowser(String browser) {
         client.clientState.browser = browser
     }
@@ -32,31 +32,31 @@ class BrowserTestCase extends TestCaseBase {
     def getBrowser() {
         client.clientState.browser
     }
-    
+
     void clearCache() {
         client.cache.clear()
     }
-    
+
     boolean getScriptErrorsEnabled() {
         client.scriptErrorsEnabled
     }
-    
+
     void setScriptErrorsEnabled(boolean enabled) {
         client.scriptErrorsEnabled = enabled
     }
-    
+
     boolean getCookiesEnabled() {
         client.cookieManager.cookiesEnabled
     }
-    
+
     void setCookiesEnabled(boolean enabled) {
         client.cookieManager.cookiesEnabled = enabled
     }
-    
+
     boolean getJavaScriptEnabled() {
         client.javaScriptEnabled
     }
-    
+
     void setJavaScriptEnabled(boolean enabled) {
         client.javaScriptEnabled = enabled
     }
@@ -75,7 +75,7 @@ class BrowserTestCase extends TestCaseBase {
     def getCookies() {
         client.cookieManager.cookies
     }
-    
+
     void back() {
         if (urlStack.size() < 2) {
             throw new IllegalStateException('You cannot call back() without first generating at least 2 responses')
@@ -93,12 +93,12 @@ class BrowserTestCase extends TestCaseBase {
         c._page = lastPage.page
         c.response = lastPage.response
     }
-    
+
     def getPage() {
         assertNotNull "Page must never be null!", client._page
-        return client._page        
+        return client._page
     }
-    
+
     def byXPath(expr) {
         try {
             def results = page.getByXPath(expr.toString())
@@ -111,7 +111,7 @@ class BrowserTestCase extends TestCaseBase {
             return null
         }
     }
-    
+
     def byId(id) {
         try {
             return page.getElementById(id.toString())
@@ -119,12 +119,12 @@ class BrowserTestCase extends TestCaseBase {
             return null
         }
     }
-        
+
     def byClass(cssClass) {
         try {
             def results = page.getByXPath("//*[@class]").findAll { element ->
                 def attribute = element.attributes?.getNamedItem('class')
-                
+
                 return attribute?.value?.split().any { it == cssClass }
             }
             if (results.size() > 1) {
@@ -140,17 +140,17 @@ class BrowserTestCase extends TestCaseBase {
 
     def byName(name) {
         def elems = page.getElementsByName(name.toString())
-        if (elems.size() > 1) { 
+        if (elems.size() > 1) {
             return elems // return the list
         } else if (!elems) {
             return null
         }
         return elems[0] // return the single element
     }
-    
-    
+
+
     /**
-     * Get the first HTML form on the page, if any, and run the closure on it. 
+     * Get the first HTML form on the page, if any, and run the closure on it.
      * Useful when form has no name.
      * @param closure Optional closure containing code to set/get form fields
      * @return the HtmlUnit form object
@@ -163,7 +163,7 @@ class BrowserTestCase extends TestCaseBase {
         }
         processForm(f, closure)
     }
-    
+
     /**
      * Get the HTML form by ID or name, with an optional closure to set field values
      * on the form
@@ -201,13 +201,13 @@ class BrowserTestCase extends TestCaseBase {
     def getResponse() {
         client.response
     }
-    
+
     protected makeRequest(url, method, paramSetupClosure) {
-        System.out.println("\n\n${'>'*20} Making request to $url using method $method ${'>'*20}")
-        
+        println("\n\n${'>'*20} Making request to $url using method $method ${'>'*20}")
+
         def reqURL = makeRequestURL(url)
-            
-        System.out.println("Initializing web request settings for $reqURL")
+
+        println("Initializing web request settings for $reqURL")
         client.request(reqURL, method, paramSetupClosure)
 
         // Now let's see if it was a redirect
@@ -219,10 +219,10 @@ class BrowserTestCase extends TestCaseBase {
      */
     void waitForScripts(timeout) {
         consoleOutput.println "Waiting for JavaScripts, timeout $timeout"
-        def n = client.waitForBackgroundJavaScript(timeout) 
+        def n = client.waitForBackgroundJavaScript(timeout)
         consoleOutput.println "Finished waiting for JavaScripts, pending tasks: $n"
     }
-    
+
 	/**
 	 * Clicks an element, finding the link/button by first the id attribute, or failing that the clickable text of the link.
 	 */
@@ -237,14 +237,14 @@ class BrowserTestCase extends TestCaseBase {
         if (!a) {
 	        throw new IllegalArgumentException("No such element for id or anchor text [${anchor}]")
         }
-        System.out.println "Clicked [$anchor] which resolved to a [${a.class}]"
+        println "Clicked [$anchor] which resolved to a [${a.class}]"
         a.click()
         // page loaded, events are triggered if necessary
 
         // Now let's see if it was a redirect
         handleRedirects()
 	}
-	
+
 	void assertTitleContains(String expected) {
         boolean con = stripWS(page.titleText.toLowerCase()).contains(stripWS(expected?.toLowerCase()))
 	    assertTrue "Expected title of response to loosely contain [${expected}] but was [${page.titleText}]".toString(), con
@@ -306,6 +306,4 @@ class BrowserTestCase extends TestCaseBase {
 	    if (!node) throw new IllegalArgumentException("No element found with id $id")
 	    assertTrue node.textContent.contains(expected)
 	}
-
-    
 }

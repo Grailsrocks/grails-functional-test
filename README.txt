@@ -42,19 +42,19 @@ Here's an example script:
 class TwitterTests extends functionaltestplugin.FunctionalTestCase {
   void testSearch() {
     get('http://www.twitter.com')
-		
+
     click "Search"
-		
+
     assertStatus 200
     assertContentContains "search"
-		
+
     form('searchForm') {
       q = "#grails"
       click "Search"
     }
 
     assertStatus 200
-    assertContentContains "#grails"		
+    assertContentContains "#grails"
   }
 }
 {code}
@@ -179,7 +179,7 @@ void testSomething() {
     email = "secret@hades.com"
     click "submit"
   }
-	
+
   assertContentContains "form submitted"
 }
 {code}
@@ -188,7 +188,7 @@ The form object return lets you locate elements by the value of their name attri
 
 * Simple text fields such as inputs with type text, hidden, password etc can just be set or accessed as the value
 * Checkable items - radio buttons and checkboxes - can just be set to true/false
-* Selectable items - select boxes - can have their single selection get/set 
+* Selectable items - select boxes - can have their single selection get/set
 
 So for example, normal input fields can have their value attribute get/set when you access them:
 {code}
@@ -227,9 +227,9 @@ The above will find the radioButton of name typeOfService and value "POWERUSER" 
 
 To click a button or image input in a form, there is a synthetic method "click" method, as well as a click method on clickable elements:
 {code}
-form("userDetails") { 
-	name = "Marc" 
-	click "send" 
+form("userDetails") {
+	name = "Marc"
+	click "send"
 }
 {code}
 The above will find the clickable element in the form with name "send", or failing that with the value "send" and click it. If still nothing suitable is found, it will look for a button-type element with the *value* of the name specified. Alternatively you can do:
@@ -287,7 +287,7 @@ void testSomething() {
 		// NOTE: you can use this "method call" approach or assignment x = y
 		email "marc@somewhere.com"
     }
-	
+
 	assertStatus 403   // we're not logged in!
 }
 {code}
@@ -404,11 +404,11 @@ Asserts that a cookie with that name exists in specified domain in the browser o
 
 h3. method: assertCookieContains <name>, <content>
 
-Asserts that a cookie with that name exists in the browser of the currently executing test, and contains the content expected (loosely - case and whitespace insensitive) 
+Asserts that a cookie with that name exists in the browser of the currently executing test, and contains the content expected (loosely - case and whitespace insensitive)
 
 h3. method: assertCookieContainsStrict <name>, <content>
 
-Asserts that a cookie with that name exists in the browser of the currently executing test, and contains the content expected case and whitespace sensitive 
+Asserts that a cookie with that name exists in the browser of the currently executing test, and contains the content expected case and whitespace sensitive
 
 
 h2. Roadmap - future stuff

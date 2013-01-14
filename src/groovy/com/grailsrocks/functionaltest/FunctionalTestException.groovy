@@ -20,19 +20,20 @@
 package com.grailsrocks.functionaltest
 
 import grails.util.GrailsUtil
+import junit.framework.AssertionFailedError
 
-class FunctionalTestException extends junit.framework.AssertionFailedError {
+class FunctionalTestException extends AssertionFailedError {
     def urlStack
     def hackedCause
     def baseURL
-    
+
     FunctionalTestException(TestCaseBase test, Throwable cause) {
         super(cause.message ?: cause.toString())
         this.hackedCause = GrailsUtil.sanitize(cause)
         this.urlStack = test.urlStack
         this.baseURL = test.baseURL
     }
-    
+
     void dumpURLStack(PrintWriter pw = null) {
         if (!pw) pw = System.out
         pw.println "URL Stack that resulted in ${hackedCause ?: 'failure'}"
@@ -42,14 +43,14 @@ class FunctionalTestException extends junit.framework.AssertionFailedError {
             pw.println "${it.method} ${url} ${it.eventSource}"
         }
         pw.println "---------------"
-        
+
         if (hackedCause) {
             hackedCause.printStackTrace(pw)
         } else {
             super.printStackTrace(pw)
         }
     }
-    
+
     void printStackTrace() {
         dumpURLStack()
     }

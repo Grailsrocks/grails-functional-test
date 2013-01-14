@@ -1,11 +1,10 @@
 package com.grailsrocks.functionaltest.client
 
-import groovyx.net.http.RESTClient
+import static groovyx.net.http.ContentType.*
 import groovyx.net.http.HttpResponseException
+import groovyx.net.http.RESTClient
 
 import org.codehaus.groovy.grails.plugins.codecs.Base64Codec
-
-import static groovyx.net.http.ContentType.*
 
 import com.grailsrocks.functionaltest.dsl.RequestBuilder
 import com.grailsrocks.functionaltest.util.TestUtils
@@ -21,14 +20,14 @@ class APIClient implements Client {
     String requestMethod
     Map stickyHeaders = [:]
     def currentAuthInfo
-    
+
     APIClient(ClientAdapter listener) {
         this.listener = listener
         client.parserRegistry = new EvilWizardsKilledByFireIncantationParserRegistry()
     }
-    
+
     void clientChanged() {
-    
+
     }
 
     String setAuth(type, user, credentials) {
@@ -50,14 +49,14 @@ class APIClient implements Client {
             return ''
         }
     }
-    
+
     void request(URL url, String method, Closure paramSetupClosure) {
         this.url = url
         this.requestMethod = method
 
         this.response = null
         this.responseString = null
-        
+
         clientArgs = [uri: url, headers:[:]]
 
         // Set the authorization if any
@@ -66,23 +65,23 @@ class APIClient implements Client {
             def encoded = Base64Codec.encode("${currentAuthInfo.user}:${currentAuthInfo.credentials}".getBytes('utf-8'))
             clientArgs.headers.Authorization = "Basic "+encoded
         }
-        
+
         def wrapper
         if (paramSetupClosure) {
             def builder = new RequestBuilder(clientArgs)
             wrapper = builder.build(paramSetupClosure)
         }
-        
+
         def headerLists = [stickyHeaders]
         if (wrapper) {
             headerLists << wrapper.headers
         }
         headerLists.each { headers ->
-            for (entry in headers) { 
+            for (entry in headers) {
                 clientArgs.headers[entry.key] = entry.value.toString()
             }
         }
-        
+
         //@todo THIS IS BROKEN at least for GET it seems, no params make it to server
         if (wrapper?.reqParameters) {
             // @todo RESTClient doesn't like if you use query and queryString together it seems
@@ -108,28 +107,28 @@ class APIClient implements Client {
             // this tells it to use our content type
             requestType = BINARY
         }
-        
+
         clientArgs.contentType = acceptType
         clientArgs.requestContentType = requestType
-        
-        
+
+
         switch (clientArgs.contentType) {
             case 'application/json':
             case 'text/json':
                 if (wrapper?.body != null) {
                     clientArgs.body = wrapper.body
                 }
-                break;
+                break
             case 'text/xml':
                 if (wrapper?.body != null) {
                     clientArgs.body = wrapper.body
                 }
-                break;
+                break
             default:
                 if (wrapper?.body != null) {
                     clientArgs.body = wrapper.body
-                }   
-                break;
+                }
+                break
         }
 
         TestUtils.dumpRequestInfo(this)
@@ -144,29 +143,29 @@ class APIClient implements Client {
 
                 // @todo need to copy the response data first, then mutate it to string also
                 // as RESTClient only lets you read the response once.
-                
+
                 switch (response.contentType) {
                     case ~'application/json.*':
                     case ~'text/.*':
                         responseString = response.data.text
-                        break;
+                        break
                     default:
                         println "yresp is: ${response.data.getClass()}"
-                        byte[] bytes = new byte[100] 
+                        byte[] bytes = new byte[100]
                         response.data.read(bytes)
                         responseString = "Binary file:\r\n" + new String(bytes, 'utf-8')
                         def n = response.data.available()
                         if (n) {
                             responseString += "\r\n and $n more bytes"
                         }
-                        break;
+                        break
                 }
             } else {
                 responseString = ''
             }
 
             event = new ContentChangedEvent(
-                    client: this, 
+                    client: this,
                     url: this.url,
                     method: method,
                     eventSource: 'API client request',
@@ -174,7 +173,7 @@ class APIClient implements Client {
         } catch (HttpResponseException e) {
             response = e.response
             event = new ContentChangedEvent(
-                    client: this, 
+                    client: this,
                     url: this.url,
                     method: method,
                     eventSource: 'API client request failure',
@@ -183,7 +182,7 @@ class APIClient implements Client {
 
         listener.contentChanged( event)
     }
-    
+
     Map getRequestHeaders() {
         clientArgs.headers
     }

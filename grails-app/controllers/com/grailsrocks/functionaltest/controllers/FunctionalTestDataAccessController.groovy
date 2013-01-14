@@ -1,13 +1,13 @@
 package com.grailsrocks.functionaltest.controllers
 
-import grails.util.Environment
 import grails.converters.JSON
+import grails.util.Environment
 import grails.util.GrailsNameUtils
 
 class FunctionalTestDataAccessController {
-    
+
     def fixtureLoader
-    
+
     def objectExists = {
         assert Environment.current != Environment.PRODUCTION
         def clsName = params.className
@@ -35,13 +35,13 @@ class FunctionalTestDataAccessController {
             render(text: [error:'Not found'] as JSON, status: 404)
         }
     }
-    
+
     def fixture = {
         assert Environment.current != Environment.PRODUCTION
 
         def f = fixtureLoader.load(params.name)
         def res = [:]
-        if (!f) { 
+        if (!f) {
             res.error = 'No such fixture: [${params.name}]'
         }
         render(text: res as JSON, status: res.error ? 500 : 200)

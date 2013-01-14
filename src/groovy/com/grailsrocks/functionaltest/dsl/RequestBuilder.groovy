@@ -23,13 +23,13 @@ import com.grailsrocks.functionaltest.util.HTTPUtils
 class RequestBuilder {
     def ___data
     def ___clientConfig
-    
+
     RequestBuilder(clientConfig) {
-        this.@___clientConfig = clientConfig
+        ___clientConfig = clientConfig
     }
-    
+
     def build(Closure paramSetupClosure) {
-        this.@___data = [
+        ___data = [
             reqParameters:[],
             reqParametersByName:[:],
             headers:[:],
@@ -38,84 +38,84 @@ class RequestBuilder {
         ]
         paramSetupClosure.delegate = this
         paramSetupClosure.call()
-        return this.@___data
+        return ___data
     }
 
     void headers(Closure c) {
-        c.delegate = this.@___data.headers
+        c.delegate = ___data.headers
         c.call()
     }
 
     void setProperty(String name, def value) {
-        this.@___data.reqParameters << [name, value]
-        def existingByName = this.@___data.reqParametersByName[name]
+        ___data.reqParameters << [name, value]
+        def existingByName = ___data.reqParametersByName[name]
         // Sorry, I'm being evil, but this looks for multivalues and sets them as lists as necessary
         // I'll simplify it another time eh
-        (existingByName != null) ? (existingByName instanceof List ? 
-            (existingByName << value) : (this.@___data.reqParametersByName[name] = [existingByName, value])) : 
-            (this.@___data.reqParametersByName[name] = value) 
+        (existingByName != null) ? (existingByName instanceof List ?
+            (existingByName << value) : (___data.reqParametersByName[name] = [existingByName, value])) :
+            (___data.reqParametersByName[name] = value)
     }
 
     void body(Closure c) {
-        this.@___data.body = c()?.toString() // call the closure and use result
+        ___data.body = c()?.toString() // call the closure and use result
     }
 
     void ___setContentTypeIfNotAlreadySet(String value) {
-        if (!this.@___data.headers['Content-Type']) {
-            this.@___data.headers['Content-Type'] = value
+        if (!___data.headers['Content-Type']) {
+            ___data.headers['Content-Type'] = value
         }
     }
-    
+
     void body(Map args) {
         if (args.file) {
-            this.@___data.bodyIsUpload = true
+            ___data.bodyIsUpload = true
             switch (args.file) {
-                case File: 
+                case File:
                     // @todo look up mime type
                     ___setContentTypeIfNotAlreadySet(HTTPUtils.getMimeTypeOfFile(args.file.toString()))
-                    this.@___data.body = args.file.newInputStream()
-                    break;
+                    ___data.body = args.file.newInputStream()
+                    break
                 case InputStream:
-                    this.@___data.body = args.file
-                    break;
+                    ___data.body = args.file
+                    break
                 default:
                     def fn = args.file.toString()
                     ___setContentTypeIfNotAlreadySet(HTTPUtils.getMimeTypeOfFile(fn))
-                    this.@___data.body = new File(fn).newInputStream()
-                    break;
+                    ___data.body = new File(fn).newInputStream()
+                    break
             }
             ___setContentTypeIfNotAlreadySet('application/binary')
         } else {
             if (args.json) {
                 ___setContentTypeIfNotAlreadySet('text/json')
-                this.@___data.body = args.json
+                ___data.body = args.json
             } else if (args.xml) {
-                this.@___data.headers['Content-Type'] = 'text/xml'
-                this.@___data.body = args.xml
+                ___data.headers['Content-Type'] = 'text/xml'
+                ___data.body = args.xml
             }
         }
     }
-    
+
     void xml(def value) {
         body(xml:value)
     }
-    
+
     void file(def value) {
         body(file:value)
     }
-    
+
     void json(def value) {
         body(json:value)
     }
-    
+
     void contentType(String type) {
         setContentType(type)
     }
-    
+
     void setContentType(String type) {
-        this.@___data.headers['Content-Type'] = type
+        ___data.headers['Content-Type'] = type
     }
-    
+
     def methodMissing(String name, args) {
         if (args.size() == 1) {
             this[name] = args[1]
@@ -123,12 +123,12 @@ class RequestBuilder {
             throw NoSuchMethodException("No such method $name - you can only invoke methods with a single argument to set request parameters")
         }
     }
-    
+
     def getProperty(String name) {
         switch (name) {
-            case 'headers': return this.@___data.headers
-            case 'settings': return this.@___clientConfig
-            default: return this.@___data.reqParametersByName[name]
+            case 'headers': return ___data.headers
+            case 'settings': return ___clientConfig
+            default: return ___data.reqParametersByName[name]
         }
     }
 }

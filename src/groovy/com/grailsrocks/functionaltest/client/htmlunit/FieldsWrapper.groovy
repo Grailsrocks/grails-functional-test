@@ -16,24 +16,23 @@
  * The original code of this plugin was developed by Historic Futures Ltd.
  * (www.historicfutures.com) and open sourced.
  */
- 
+
 package com.grailsrocks.functionaltest.client.htmlunit
 
-import com.gargoylesoftware.htmlunit.html.HtmlForm
-import junit.framework.Assert
 import com.gargoylesoftware.htmlunit.ElementNotFoundException
+import com.gargoylesoftware.htmlunit.html.HtmlForm
 
 class FieldsWrapper {
     HtmlForm form
-    
+
     FieldsWrapper(HtmlForm form) { this.form = form }
-    
-    def getProperty(String key) { 
+
+    def getProperty(String key) {
         try {
-            return form.getInputByName(key) 
+            return form.getInputByName(key)
         } catch (ElementNotFoundException e) {
             try {
-                return form.getTextAreaByName(key) 
+                return form.getTextAreaByName(key)
             } catch (ElementNotFoundException ex) {
                 return null
             }

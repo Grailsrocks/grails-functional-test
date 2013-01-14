@@ -16,15 +16,18 @@
  * The original code of this plugin was developed by Historic Futures Ltd.
  * (www.historicfutures.com) and open sourced.
  */
- 
-class TestingTests extends functionaltestplugin.FunctionalTestCase {
+
+import functionaltestplugin.FunctionalTestCase
+
+class TestingTests extends FunctionalTestCase {
+
     void testTrivialGet() {
         get 'http://json.org'
         assertStatus 200
         assertContentContains "JSON"
     }
 
-/*    
+/*
     void testTwitterSearch() {
         get 'http://www.twitter.com'
 
@@ -39,7 +42,7 @@ class TestingTests extends functionaltestplugin.FunctionalTestCase {
         }
 
         assertStatus 200
-        
+
         assertTitleContains "#grails"
         assertTitleContains "twitter search"
         assertContentContains "#grails"
@@ -49,17 +52,16 @@ class TestingTests extends functionaltestplugin.FunctionalTestCase {
     void testGrailsPluginSearch() {
         get("http://grails.org/")
         click "Plugins"
-        
+
         expect status:200, contentType:'text/html'
-        
+
         form('pluginSearch') {
             q = 'functional-test'
             Search.click()
         }
-        
+
         expect status:200, contentType:'text/html'
 
         assertContentContains "functional test"
     }
 }
-
