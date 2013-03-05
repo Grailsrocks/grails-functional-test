@@ -156,7 +156,6 @@ class BrowserTestCase extends TestCaseBase {
      * @return the HtmlUnit form object
      */
     def form(Closure closure) {
-        System.err.println "Geting forms and page is ${page}"
         def f = page.forms?.getAt(0)
         if (!f) {
             throw new IllegalArgumentException("There are no forms in the current response")
