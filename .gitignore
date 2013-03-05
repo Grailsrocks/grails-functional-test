@@ -4,3 +4,6 @@
 /docs
 /test/reports
 /web-app
+target
+plugin.xml
+grails-functional-test*.zip

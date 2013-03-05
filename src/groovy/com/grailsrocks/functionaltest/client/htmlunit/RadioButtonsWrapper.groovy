@@ -16,18 +16,18 @@
  * The original code of this plugin was developed by Historic Futures Ltd.
  * (www.historicfutures.com) and open sourced.
  */
- 
+
 package com.grailsrocks.functionaltest.client.htmlunit
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm
 
 class RadioButtonsWrapper {
     HtmlForm form
-    
+
     RadioButtonsWrapper(HtmlForm form) { this.form = form }
-    
-    def getProperty(String key) { 
-        def buttons = form.getRadioButtonsByName(key) 
+
+    def getProperty(String key) {
+        def buttons = form.getRadioButtonsByName(key)
         return buttons ? new RadioGroupWrapper(key, buttons) : null
     }
 }

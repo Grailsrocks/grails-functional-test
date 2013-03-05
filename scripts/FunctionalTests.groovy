@@ -15,38 +15,26 @@
  */
 
 /**
- * Gant script that runs the functional tests
+ * Runs the functional tests.
  *
  * @author Marc Palmer
- *
  */
 
-import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU;
-import grails.util.GrailsUtil as GU;
-import grails.util.GrailsWebUtil as GWU
-import org.codehaus.groovy.grails.commons.GrailsApplication;
-import org.codehaus.groovy.grails.support.*
-import java.lang.reflect.Modifier;
-import junit.framework.TestCase;
-import junit.framework.TestResult;
-import junit.framework.TestSuite;
-import junit.textui.TestRunner;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.codehaus.groovy.grails.commons.spring.GrailsRuntimeConfigurator as GRC;
-import org.apache.tools.ant.taskdefs.optional.junit.*
-import org.springframework.mock.web.*
-import org.springframework.core.io.*
-import org.springframework.web.context.request.RequestContextHolder;
-import org.codehaus.groovy.grails.plugins.*
-import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes
-import org.springframework.transaction.support.TransactionTemplate
-import org.springframework.transaction.support.TransactionCallback
-import org.springframework.transaction.TransactionStatus
-import org.apache.commons.logging.LogFactory
+import grails.util.Metadata
 import grails.web.container.EmbeddableServerFactory
 
-Ant.property(environment: "env")
-grailsHome = Ant.antProject.properties."env.GRAILS_HOME"
+import java.lang.reflect.Modifier
+
+import junit.framework.TestCase
+import junit.framework.TestResult
+import junit.framework.TestSuite
+
+import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest
+import org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter
+import org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter
+
+ant.property(environment: "env")
+grailsHome = ant.antProject.properties."env.GRAILS_HOME"
 result = new TestResult()
 compilationFailures = []
 testingBaseURL = null
@@ -55,16 +43,16 @@ testingInProcessJetty = false
 // Change default env to test
 scriptEnv = "test"
 
-includeTargets << grailsScript("Init")
-includeTargets << grailsScript("Bootstrap")
-includeTargets << grailsScript("Run")
-includeTargets << grailsScript("War")
+includeTargets << grailsScript("_GrailsInit")
+includeTargets << grailsScript("_GrailsBootstrap")
+includeTargets << grailsScript("_GrailsRun")
+includeTargets << grailsScript("_GrailsWar")
+includeTargets << grailsScript("_GrailsPackage")
 
 generateLog4jFile = true
 
-target('default': "Run a Grails application's functional tests") {
-    depends(classpath, checkVersion, configureProxy, parseArguments, clean, cleanTestReports)
-    runFunctionalTests()
+target(functionalTests: "Run a Grails application's functional tests") {
+    depends(classpath, checkVersion, configureProxy, parseArguments, clean, cleanTestReports, runFunctionalTests)
 }
 
 reportsDir = "${basedir}/test/reports"
@@ -79,7 +67,6 @@ def processResults = {
             event("StatusFinal", ["Tests passed. View reports in $reportsDir"])
             exit(0)
         }
-
     }
     else {
         event("StatusFinal", ["Tests passed. View reports in $reportsDir"])
@@ -116,9 +103,9 @@ target(runFunctionalTests: "The functional test implementation target") {
         reportsDir = config.grails.testing.reports.destDir
     }
 
-    Ant.mkdir(dir: reportsDir)
-    Ant.mkdir(dir: "${reportsDir}/html")
-    Ant.mkdir(dir: "${reportsDir}/plain")
+    ant.mkdir(dir: reportsDir)
+    ant.mkdir(dir: "${reportsDir}/html")
+    ant.mkdir(dir: "${reportsDir}/plain")
 
     compileTests()
     packageTests()
@@ -130,7 +117,7 @@ target(runFunctionalTests: "The functional test implementation target") {
     */
 
     def server
-    def completed = false
+    boolean completed = false
     def previousRunMode
 
     previousRunMode = System.getProperty('grails.run.mode', '')
@@ -163,10 +150,9 @@ target(runFunctionalTests: "The functional test implementation target") {
             }
         }
 
-
         System.setProperty('grails.functional.test.baseURL', testingBaseURL)
 
-        System.out.println "Functional tests running with base url: ${testingBaseURL}"
+        println "Functional tests running with base url: ${testingBaseURL}"
         // @todo Hmmm this doesn't look like the right event to use
         event("AllTestsStart", ["Starting run-functional-tests"])
         doFunctionalTests()
@@ -200,15 +186,15 @@ private runWar(scheme, host, httpPort, httpsPort) {
     EmbeddableServerFactory serverFactory = loadServerFactory()
     grailsServer = serverFactory.createForWAR(warName, serverContextPath)
 
-    grails.util.Metadata.getCurrent().put(grails.util.Metadata.WAR_DEPLOYED, "true")
+    Metadata.getCurrent().put(Metadata.WAR_DEPLOYED, "true")
     runServer server:grailsServer, host:host, httpPort:httpPort, httpsPort: httpsPort, scheme: scheme
 }
 
 target(packageTests: "Puts some useful things on the classpath") {
-    Ant.copy(todir: testDirPath) {
+    ant.copy(todir: testDirPath) {
         fileset(dir: "${basedir}", includes: "application.properties")
     }
-    Ant.copy(todir: testDirPath, failonerror: false) {
+    ant.copy(todir: testDirPath, failonerror: false) {
         fileset(dir: "${basedir}/grails-app/conf", includes: "**", excludes: "*.groovy, log4j*, hibernate, spring")
         fileset(dir: "${basedir}/grails-app/conf/hibernate", includes: "**/**")
         fileset(dir: "${basedir}/src/java") {
@@ -221,16 +207,16 @@ target(packageTests: "Puts some useful things on the classpath") {
             exclude(name: "**/*.groovy)")
         }
     }
-
 }
+
 target(compileTests: "Compiles the functional test cases") {
     event("TestCompileStart", ['functional-tests'])
 
     def destDir = testDirPath
-    Ant.mkdir(dir: destDir)
+    ant.mkdir(dir: destDir)
     try {
         //def nonTestCompilerClasspath = compilerClasspath.curry(false)
-        Ant.groovyc(destdir: destDir,
+        ant.groovyc(destdir: destDir,
                 projectName: grailsAppName,
                 encoding: "UTF-8",
                 classpathref: "grails.test.classpath", {
@@ -242,8 +228,7 @@ target(compileTests: "Compiles the functional test cases") {
         exit(1)
     }
 
-    classLoader = new URLClassLoader([new File(destDir).toURI().toURL()] as URL[],
-            classLoader)
+    classLoader = new URLClassLoader([new File(destDir).toURI().toURL()] as URL[], classLoader)
     Thread.currentThread().contextClassLoader = classLoader
 
     event("TestCompileEnd", ['functional-tests'])
@@ -272,10 +257,11 @@ def populateTestSuite = {suite, testFiles, classLoader, String base ->
         }
     }
 }
+
 def runTests = {suite, TestResult result, Closure callback ->
     for (TestSuite test in suite.tests()) {
-        new File("${reportsDir}/FUNCTEST-${test.name}.xml").withOutputStream {xmlOut ->
-            new File("${reportsDir}/plain/FUNCTEST-${test.name}.txt").withOutputStream {plainOut ->
+        new File(reportsDir, "FUNCTEST-${test.name}.xml").withOutputStream {xmlOut ->
+            new File(reportsDir, "plain/FUNCTEST-${test.name}.txt").withOutputStream {plainOut ->
 
                 def savedOut = System.out
                 def savedErr = System.err
@@ -292,17 +278,17 @@ def runTests = {suite, TestResult result, Closure callback ->
                         plainOutput.startTestSuite(junitTest)
                         xmlOutput.startTestSuite(junitTest)
                         savedOut.println "Running functional test ${test.name}..."
-                        def start = System.currentTimeMillis()
-                        def runCount = 0
-                        def failureCount = 0
-                        def errorCount = 0
+                        long start = System.currentTimeMillis()
+                        int runCount = 0
+                        int failureCount = 0
+                        int errorCount = 0
 
                         for (i in 0..<test.testCount()) {
                             def thisTest = new TestResult()
                             thisTest.addListener(xmlOutput)
                             thisTest.addListener(plainOutput)
                             def t = test.testAt(i)
-                            System.out.println "--Output from ${t.name}--"
+                            println "--Output from ${t.name}--"
                             System.err.println "--Output from ${t.name}--"
 
                             callback(test, {
@@ -324,7 +310,7 @@ def runTests = {suite, TestResult result, Closure callback ->
                             }
                             else {savedOut.println " Passed!"}
                         }
-                        junitTest.setCounts(runCount, failureCount, errorCount);
+                        junitTest.setCounts(runCount, failureCount, errorCount)
                         junitTest.setRunTime(System.currentTimeMillis() - start)
                     } finally {
                         def outString = outBytes.toString()
@@ -342,7 +328,6 @@ def runTests = {suite, TestResult result, Closure callback ->
                     System.out = savedOut
                     System.err = savedErr
                 }
-
             }
         }
     }
@@ -353,7 +338,7 @@ target(doFunctionalTests: "Run Grails' function tests under the test/functional 
         def testFiles = resolveTestResources {"file:${basedir}/test/functional/${it}.groovy"}
         testFiles.addAll(resolveTestResources {"file:${basedir}/test/functional/${it}.java"})
         testFiles = testFiles.findAll {it.exists()}
-        if (testFiles.size() == 0) {
+        if (!testFiles) {
             event("StatusUpdate", ["No tests found in test/functional to execute"])
             return
         }
@@ -368,19 +353,19 @@ target(doFunctionalTests: "Run Grails' function tests under the test/functional 
             println "-------------------------------------------------------"
             println "Running ${testCases} Functional Test${testCases > 1 ? 's' : ''}..."
 
-            def start = new Date()
+            long start = System.currentTimeMillis()
             runTests(suite, result) {test, invocation ->
                 invocation()
             }
-            def end = new Date()
+            long end = System.currentTimeMillis()
 
             event("TestSuiteEnd", ["functional", suite])
-            event("StatusUpdate", ["Functional Tests Completed in ${end.time - start.time}ms"])
+            event("StatusUpdate", ["Functional Tests Completed in ${end - start}ms"])
             println "-------------------------------------------------------"
         }
     }
     catch (Exception e) {
-        event("StatusFinal", ["Error running functional tests: ${e.toString()}"])
+        event("StatusFinal", ["Error running functional tests: $e"])
         e.printStackTrace()
     }
 }
@@ -425,3 +410,5 @@ def getTestNames(testNames) {
 
     return testNames
 }
+
+setDefaultTarget functionalTests

@@ -16,32 +16,32 @@
  * The original code of this plugin was developed by Historic Futures Ltd.
  * (www.historicfutures.com) and open sourced.
  */
- 
+
 package com.grailsrocks.functionaltest.client.htmlunit
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage
 import com.gargoylesoftware.htmlunit.ElementNotFoundException
+import com.gargoylesoftware.htmlunit.html.HtmlPage
 
 class FormsWrapper {
     HtmlPage page
     def rawForms
-    
-    FormsWrapper(HtmlPage page) { 
+
+    FormsWrapper(HtmlPage page) {
         this.page = page
         this.rawForms = page.getClass().getDeclaredMethod('getForms', [] as Class[]).invoke(page, [] as Class[])
     }
-    
-    def getProperty(String key) { 
+
+    def getProperty(String key) {
         try {
-            return page.getFormByName(key) 
+            return page.getFormByName(key)
         } catch (ElementNotFoundException e) {
             throw new IllegalArgumentException("No form with name [$key] could be found in the current page")
         }
     }
-    
+
     def getAt(idx) {
         try {
-            return rawForms[idx] 
+            return rawForms[idx]
         } catch (ElementNotFoundException e) {
             throw new IllegalArgumentException("No form at index [$idx] could be found in the current page")
         }
