@@ -99,7 +99,8 @@ class FormWrapper {
             f = candidates.find { n ->
                 if (n.tagName == 'input') {
                     if (n.getAttribute('type') == 'submit') {
-                        return n.getAttribute('value') == idOrNameOrValueOrText
+                        // Return match if name or value same
+                        return (n.getAttribute('name') == idOrNameOrValueOrText) || (n.getAttribute('value') == idOrNameOrValueOrText)
                     } else {
                         return false
                     }
