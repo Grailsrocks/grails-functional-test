@@ -7,8 +7,10 @@ import groovyx.net.http.RESTClient
 import org.codehaus.groovy.grails.plugins.codecs.Base64Codec
 
 import com.grailsrocks.functionaltest.dsl.RequestBuilder
-import com.grailsrocks.functionaltest.util.TestUtils
 
+import groovy.util.logging.*
+
+@Log4j
 class APIClient implements Client {
 
     def client = new RESTClient()
@@ -23,11 +25,13 @@ class APIClient implements Client {
 
     APIClient(ClientAdapter listener) {
         this.listener = listener
+
+        // Frig the parser registry
         client.parserRegistry = new EvilWizardsKilledByFireIncantationParserRegistry()
+        client.encoders['text/json'] = client.encoders['text/plain']
     }
 
     void clientChanged() {
-
     }
 
     String setAuth(type, user, credentials) {
@@ -36,6 +40,10 @@ class APIClient implements Client {
 
     void clearAuth() {
         currentAuthInfo = null
+    }
+
+    void clearStickyHeader(String header) {
+        stickyHeaders.remove(header)
     }
 
     String setStickyHeader(String header, String value) {
@@ -111,32 +119,17 @@ class APIClient implements Client {
         clientArgs.contentType = acceptType
         clientArgs.requestContentType = requestType
 
-
-        switch (clientArgs.contentType) {
-            case 'application/json':
-            case 'text/json':
-                if (wrapper?.body != null) {
-                    clientArgs.body = wrapper.body
-                }
-                break
-            case 'text/xml':
-                if (wrapper?.body != null) {
-                    clientArgs.body = wrapper.body
-                }
-                break
-            default:
-                if (wrapper?.body != null) {
-                    clientArgs.body = wrapper.body
-                }
-                break
+        if (wrapper?.body != null) {
+            clientArgs.body = wrapper.body
         }
 
-        TestUtils.dumpRequestInfo(this)
+        listener.requestSent(this)
 
         def event
         try {
             def methodName = method.toLowerCase()
-            // @todo add failure handler here / stop failure handler being called
+
+            // Invoke the method
             response = client."${methodName}"(clientArgs)
 
             if (response.data != null) {
@@ -150,7 +143,6 @@ class APIClient implements Client {
                         responseString = response.data.text
                         break
                     default:
-                        println "yresp is: ${response.data.getClass()}"
                         byte[] bytes = new byte[100]
                         response.data.read(bytes)
                         responseString = "Binary file:\r\n" + new String(bytes, 'utf-8')

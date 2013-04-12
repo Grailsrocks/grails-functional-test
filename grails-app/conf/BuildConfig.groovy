@@ -10,7 +10,11 @@ grailsSettings.testDependencies.addAll xmlJars
 grails.project.work.dir = 'target'
 
 grails.project.dependency.resolution = {
-    inherits "global"
+    inherits("global") {
+        // uncomment to disable ehcache
+//       excludes 'xml-apis'
+    }
+
     log 'warn'
 
     repositories {
@@ -22,27 +26,31 @@ grails.project.dependency.resolution = {
         mavenRepo "http://repository.jboss.org/maven2" // For SAC
     }
 
+    def htmlUnitVersion = '2.10'
+
     dependencies {
         compile( 'org.codehaus.groovy.modules.http-builder:http-builder:0.5.2') {
             excludes 'groovy', 'xml-apis', 'xerces'
         }
-        compile( 'net.sourceforge.htmlunit:htmlunit:2.10') {
+
+        // HtmlUnit stuff
+        compile( "net.sourceforge.htmlunit:htmlunit:$htmlUnitVersion") {
             excludes 'xml-apis', 'xerces'
         }
-        compile( 'net.sourceforge.htmlunit:htmlunit-core-js:2.10') {
+        compile( "net.sourceforge.htmlunit:htmlunit-core-js:$htmlUnitVersion") {
             excludes 'xml-apis', 'xerces'
         }
-        compile( 'org.apache.httpcomponents:httpclient:4.2.1') {
+        compile( 'org.apache.httpcomponents:httpclient:4.2.3') {
             excludes 'xml-apis', 'xerces'
         }
 
-        test( 'commons-codec:commons-codec:1.6') {
+        test( 'commons-codec:commons-codec:1.7') {
             excludes 'xml-apis', 'xerces'
         }
-        test( 'net.sourceforge.nekohtml:nekohtml:1.9.16') {
+        test( 'net.sourceforge.nekohtml:nekohtml:1.9.18') {
             excludes 'xml-apis', 'xerces'
         }
-        test( 'net.sourceforge.cssparser:cssparser:0.9.7') {
+        test( 'net.sourceforge.cssparser:cssparser:0.9.9') {
             excludes 'xml-apis', 'xerces'
         }
         test( 'xalan:serializer:2.7.1') {
@@ -51,19 +59,16 @@ grails.project.dependency.resolution = {
         test( 'xalan:xalan:2.7.1') {
             excludes 'xml-apis', 'xerces'
         }
-/*
-        test( 'xercesImpl:xercesImpl:2.9.1') {
-            excludes 'xml-apis'
-        }
-*/
-
+        // test( 'xerces:xercesImpl:2.10.0') {
+        //     excludes 'xml-apis'
+        // }
         test( 'org.w3c.css:sac:1.3') {
             excludes 'xml-apis', 'xerces'
         }
     }
 
     plugins {
-        build( ":tomcat:$grailsVersion", ':release:2.2.0', ':rest-client-builder:1.0.3') {
+        build( ":tomcat:$grailsVersion", ':release:2.2.1', ':rest-client-builder:1.0.3' ) {
             export = false
         }
     }

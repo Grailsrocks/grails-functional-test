@@ -6,6 +6,8 @@ interface Client {
     void request(URL url, String method, Closure setupDSL)
 
     String setStickyHeader(String header, String value)
+    void clearStickyHeader(String header)
+
     String setAuth(type, user, credentials)
     void clearAuth()
 

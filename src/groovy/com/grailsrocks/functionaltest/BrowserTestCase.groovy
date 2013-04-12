@@ -133,7 +133,7 @@ class BrowserTestCase extends TestCaseBase {
                 return results[0]
             }
         } catch (ElementNotFoundException e) {
-            println "No element found for class $cssClass"
+            printlnToTestReport "No element found for class $cssClass"
             return null
         }
     }
@@ -202,11 +202,10 @@ class BrowserTestCase extends TestCaseBase {
     }
 
     protected makeRequest(url, method, paramSetupClosure) {
-        println("\n\n${'>'*20} Making request to $url using method $method ${'>'*20}")
+        printlnToTestReport "\n\n${'>'*20} Making request to $url using method $method ${'>'*20}"
 
         def reqURL = makeRequestURL(url)
 
-        println("Initializing web request settings for $reqURL")
         client.request(reqURL, method, paramSetupClosure)
 
         // Now let's see if it was a redirect
@@ -217,9 +216,9 @@ class BrowserTestCase extends TestCaseBase {
      * Experimental code in HtmlUnit is called here. May change in future, YMMV
      */
     void waitForScripts(timeout) {
-        consoleOutput.println "Waiting for JavaScripts, timeout $timeout"
+        printlnToConsole "Waiting for JavaScripts, timeout $timeout"
         def n = client.waitForBackgroundJavaScript(timeout)
-        consoleOutput.println "Finished waiting for JavaScripts, pending tasks: $n"
+        printlnToConsole "Finished waiting for JavaScripts, pending tasks: $n"
     }
 
 	/**
@@ -234,9 +233,9 @@ class BrowserTestCase extends TestCaseBase {
         } catch (ElementNotFoundException e) {
         }
         if (!a) {
-	        throw new IllegalArgumentException("No such element for id or anchor text [${anchor}]")
+	        throw new IllegalArgumentException("No such element for id or anchor text [${idOrAnchorOrButtonText}]")
         }
-        println "Clicked [$anchor] which resolved to a [${a.class}]"
+        printlnToTestReport "Clicked [$idOrAnchorOrButtonText] which resolved to a [${a.class}]"
         a.click()
         // page loaded, events are triggered if necessary
 

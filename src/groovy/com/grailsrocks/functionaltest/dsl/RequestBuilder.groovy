@@ -67,6 +67,8 @@ class RequestBuilder {
     }
 
     void body(Map args) {
+        println "Setting body: $args"
+
         if (args.file) {
             ___data.bodyIsUpload = true
             switch (args.file) {

@@ -29,7 +29,6 @@ import org.codehaus.groovy.runtime.StackTraceUtils
 
 import com.grailsrocks.functionaltest.client.*
 import com.grailsrocks.functionaltest.util.HTTPUtils
-import com.grailsrocks.functionaltest.util.TestUtils
 
 abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptable, ClientAdapter {
 
@@ -54,6 +53,8 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         }
     }
 
+    static int maxW = 80
+
     def baseURL // populated via test script
     def urlStack = new ArrayList()
     boolean autoFollowRedirects = true
@@ -62,6 +63,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
     private String currentClientId
     Client currentClient
     def redirectUrl
+    def authHeader
 
     def contentTypeForJSON = 'application/json'
     def contentTypeForXML = 'text/xml'
@@ -72,7 +74,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         baseURL = System.getProperty('grails.functional.test.baseURL')
 
         if (!MONKEYING_DONE) {
-            BrowserClient.initVirtualMethods()
+            BrowserClient.initVirtualMethods(this)
             MONKEYING_DONE = true
         }
 
@@ -115,7 +117,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
      * Call to switch between multiple clients, simulating different users or access scenarios (REST API + browser)
      */
     void client(String id, Class<Client> type = getDefaultClientType()) {
-        testReportOut.println "Switching to browser client [$id]"
+        printlnToTestReport "Switching to browser client [$id]"
         if (id != currentClientId) {
             // If we were currently unnamed but have some state, save our state with name ""
             stashClient(currentClientId ?: '')
@@ -124,7 +126,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
             unstashClient(id)
             if (!currentClient) {
                 // Creat new
-                testReportOut.println "Creating to new client [$id] of type [$type]"
+                printlnToTestReport "Creating to new client [$id] of type [$type]"
                 currentClient = (type ?: BrowserClient).newInstance(this)
                 stashClient(id)
             }
@@ -152,7 +154,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
 
     protected void tearDown() {
         currentClient = null
-        consoleOutput.println('') // force newline
+        printlnToConsole '' // force newline
         super.tearDown()
     }
 
@@ -220,7 +222,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         def u = redirectUrl
         if (u) {
             get(u) // @todo should be same HTTP method as previous request?
-            println("Followed redirect to $u")
+            printlnToTestReport "Followed redirect to $u"
         } else {
             throw new IllegalStateException('The last response was not a redirect, so cannot followRedirect')
         }
@@ -366,7 +368,8 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
 	}
 
 	void assertContentType(String expected) {
-	    assertTrue "Expected content type to match [${expected}]", stripWS(client.responseContentType.toLowerCase()).startsWith(stripWS(expected?.toLowerCase()))
+        def respType = stripWS(client.responseContentType.toLowerCase())
+	    assertTrue "Expected content type to match [${expected}] but it was [${respType}]", respType.startsWith(stripWS(expected?.toLowerCase()))
 	}
 
 	void assertHeader(String header, String expected) {
@@ -378,11 +381,13 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
 	}
 
 	void assertHeaderContains(String header, String expected) {
-	    assertTrue "Expected header [$header] to match [${expected}]", stripWS(client.getResponseHeader(header)?.toLowerCase()).contains(stripWS(expected?.toLowerCase()))
+        def respHeader = stripWS(client.getResponseHeader(header)?.toLowerCase())
+	    assertTrue "Expected header [$header] to match [${expected}] but it was [${respHeader}]", respHeader.contains(stripWS(expected?.toLowerCase()))
 	}
 
 	void assertHeaderContainsStrict(String header, String expected) {
-	    assertTrue "Expected header [$header] to strictly match [${expected}]", client.getResponseHeader(header)?.contains(expected)
+        def respHeader = stripWSclient.getResponseHeader(header)
+	    assertTrue "Expected header [$header] to strictly match [${expected}] but it was [${respHeader}]", respHeader?.contains(expected)
 	}
 
     /**
@@ -438,12 +443,22 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         client?.responseContentType
     }
 
+    void accept(String types) {
+        client.setStickyHeader('Accept', types)
+    }
+
     /**
      * Set the Authorization header
      */
     void authBasic(String user, String pass) {
-        println "Authentication set to: Basic $user:$pass"
+        printlnToTestReport "Authentication set to: Basic $user:$pass"
         client.setAuth('Basic', user, pass)
+    }
+
+    void authHeader(String header, String value) {
+        printlnToTestReport "Authorization header set to ${header}: ${value}"
+        client.setStickyHeader(header, value)
+        authHeader = header
     }
 
     /**
@@ -451,6 +466,10 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
      */
     void clearAuth() {
         client.clearAuth()
+        if (authHeader) {
+            client.clearStickyHeader(authHeader)
+            authHeader = null
+        }
     }
 
     /**
@@ -525,12 +544,12 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
     protected newResponseReceived(Client client) {
         if (HTTPUtils.isRedirectStatus(client.responseStatus)) {
             redirectUrl = client.getResponseHeader('Location')
-            println("Response was a redirect to ${redirectUrl} ${'<'*20}")
+            printlnToTestReport("Response was a redirect to ${redirectUrl} ${'<'*20}")
         } else {
             redirectUrl = null
         }
-        TestUtils.dumpResponseHeaders(client)
-        TestUtils.dumpContent(client)
+        dumpResponseHeaders(client)
+        dumpContent(client)
 
         // Now let's see if it was a redirect
         handleRedirects()
@@ -549,4 +568,57 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
         }
         urlStack << event
     }
+
+    void requestSent(Client client) {
+        dumpRequestInfo(client)
+    }
+
+    void printlnToConsole(String s) {
+        consoleOutput.println s
+    }
+
+    void printlnToTestReport(String s) {
+        testReportOut.println s
+    }
+
+    void dumpHeading(String title) {
+        def padL = '== '
+        def padR = '=' * Math.max( (int)2, (int)(maxW - (padL.length() + 1 + title.length())) )
+
+        testReportOut.println(padL + title + ' ' + padR)
+    }
+
+    void dumpSeparator() {
+        testReportOut.println('='*maxW)
+    }
+
+    void dumpRequestInfo(Client client) {
+        testReportOut.println('')
+        dumpHeading("Making request ${client.requestMethod} ${client.currentURL} parameters:")
+        client?.requestParameters?.each {
+            testReportOut.println( "${it.key}: ${it.value}")
+        }
+        dumpHeading("Request headers:")
+        client?.requestHeaders?.each {Map.Entry it ->
+            testReportOut.println("${it.key}: ${it.value}")
+        }
+        dumpHeading("Content")
+        testReportOut.println(client.requestBody)
+        dumpSeparator()
+    }
+
+    void dumpResponseHeaders(Client client) {
+        dumpHeading("Response was ${client.responseStatus} (${client.responseStatusMessage ?: 'no message'}) headers:")
+        client?.responseHeaders?.each {
+            testReportOut.println( "${it.key}: ${it.value}")
+        }
+        dumpSeparator()
+    }
+
+    void dumpContent(Client client) {
+        dumpHeading("Content")
+        testReportOut.println(client.responseAsString)
+        dumpSeparator()
+    }
+
 }

@@ -20,7 +20,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlTextArea
 import com.gargoylesoftware.htmlunit.util.NameValuePair
 import com.grailsrocks.functionaltest.client.htmlunit.*
 import com.grailsrocks.functionaltest.dsl.RequestBuilder
-import com.grailsrocks.functionaltest.util.TestUtils
 
 class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeListener, DomChangeListener {
     WebRequest settings
@@ -55,6 +54,10 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
 
     void clearAuth() {
         currentAuthInfo = null
+    }
+
+    void clearStickyHeader(String header) {
+        stickyHeaders.remove(header)
     }
 
     String setStickyHeader(String header, String value) {
@@ -96,7 +99,7 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     /**
      * Set up our magic on the HtmlUnit classes
      */
-    static initVirtualMethods() {
+    static initVirtualMethods(ClientAdapter listener) {
         HtmlPage.metaClass.getForms = { ->
             new FormsWrapper(delegate)
         }
@@ -110,21 +113,21 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
             new RadioButtonsWrapper(delegate)
         }
         HtmlInput.metaClass.setValue = { value ->
-            println("Setting value to [$value] on field [name:${delegate.nameAttribute} id:${delegate.id}] of form [${delegate.enclosingForm?.nameAttribute}]")
+            listener.printlnToTestReport "Setting value to [$value] on field [name:${delegate.nameAttribute} id:${delegate.id}] of form [${delegate.enclosingForm?.nameAttribute}]"
             delegate.valueAttribute = value
         }
         HtmlInput.metaClass.getValue = { ->
             return delegate.valueAttribute
         }
         HtmlTextArea.metaClass.setValue = { value ->
-            println("Setting value to [$value] on text area [name:${delegate.nameAttribute} id:${delegate.id}] of form [${delegate.enclosingForm?.nameAttribute}]")
+            listener.printlnToTestReport "Setting value to [$value] on text area [name:${delegate.nameAttribute} id:${delegate.id}] of form [${delegate.enclosingForm?.nameAttribute}]"
             delegate.text = value
         }
         HtmlTextArea.metaClass.getValue = { ->
             return delegate.text
         }
         HtmlSelect.metaClass.select = { value ->
-            println("Selecting option [$value] on select field [name:${delegate.nameAttribute} id:${delegate.id}] of form [${delegate.enclosingForm?.nameAttribute}]")
+            listener.printlnToTestReport "Selecting option [$value] on select field [name:${delegate.nameAttribute} id:${delegate.id}] of form [${delegate.enclosingForm?.nameAttribute}]"
             delegate.setSelectedAttribute(value?.toString(), true)
         }
         HtmlSelect.metaClass.deselect = { value ->
@@ -151,40 +154,40 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
     }
 
     void nodeAdded(DomChangeEvent event) {
-        println "Added DOM node [${nodeToString(event.changedNode)}] to parent [${nodeToString(event.parentNode)}]"
+        listener.printlnToTestReport "DOM: Added node [${nodeToString(event.changedNode)}] to parent [${nodeToString(event.parentNode)}]"
     }
 
     void nodeDeleted(DomChangeEvent event) {
-        println "Removed DOM node [${nodeToString(event.changedNode)}] from parent [${nodeToString(event.parentNode)}]"
+        listener.printlnToTestReport "DOM: Removed node [${nodeToString(event.changedNode)}] from parent [${nodeToString(event.parentNode)}]"
     }
 
     void attributeAdded(HtmlAttributeChangeEvent event) {
         def tag = event.htmlElement.tagName
         def name = event.htmlElement.attributes.getNamedItem('name')
         def id = event.htmlElement.attributes.getNamedItem('id')
-        println "Added attribute ${event.name} with value ${event.value} to tag [${tag}] (id: $id / name: $name)"
+        listener.printlnToTestReport "DOM: Added attribute ${event.name} with value ${event.value} to tag [${tag}] (id: $id / name: $name)"
     }
 
     void attributeRemoved(HtmlAttributeChangeEvent event) {
         def tag = event.htmlElement.tagName
         def name = event.htmlElement.attributes.getNamedItem('name')
         def id = event.htmlElement.attributes.getNamedItem('id')
-        println "Removed attribute ${event.name} from tag [${tag}] (id: $id / name: $name)"
+        listener.printlnToTestReport "DOM: Removed attribute ${event.name} from tag [${tag}] (id: $id / name: $name)"
     }
 
     void attributeReplaced(HtmlAttributeChangeEvent event)  {
         def tag = event.htmlElement.tagName
         def name = event.htmlElement.attributes.getNamedItem('name')
         def id = event.htmlElement.attributes.getNamedItem('id')
-        println "Changed attribute ${event.name} to ${event.value} on tag [${tag}] (id: $id / name: $name)"
+        listener.printlnToTestReport "DOM: Changed attribute ${event.name} to ${event.value} on tag [${tag}] (id: $id / name: $name)"
     }
 
     void webWindowClosed(WebWindowEvent event) {
-
+        listener.printlnToTestReport "Web window [${event?.webWindow}] closed"
     }
 
     void webWindowContentChanged(WebWindowEvent event) {
-        println "Content of web window [${event?.webWindow}] changed"
+        listener.printlnToTestReport "Content of web window [${event?.webWindow}] changed"
         if (event?.webWindow == mainWindow) {
             _page = event.newPage
             response = _page.webResponse
@@ -196,12 +199,12 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
                     eventSource: 'Browser content change',
                     statusCode: response.statusCode) )
         } else {
-            println "New content of web window [${event?.webWindow}] was not for main window, ignoring"
+            listener.printlnToTestReport "New content of web window [${event?.webWindow}] was not for main window, ignoring"
         }
     }
 
     void webWindowOpened(WebWindowEvent event) {
-        // @todo we need to think how to handle multiple windows
+        listener.printlnToTestReport "Web window [${event?.webWindow}] opened"
     }
 
     String getRequestMethod() {
@@ -251,7 +254,8 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         if (wrapper?.body) {
             settings.requestBody = wrapper.body
         }
-        TestUtils.dumpRequestInfo(this)
+
+        listener.requestSent(this)
 
         mainWindow = _client?.currentWindow
         response = _client.loadWebResponse(settings)

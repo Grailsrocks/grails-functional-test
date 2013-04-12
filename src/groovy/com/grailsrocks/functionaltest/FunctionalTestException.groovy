@@ -39,7 +39,14 @@ class FunctionalTestException extends AssertionFailedError {
         pw.println "URL Stack that resulted in ${hackedCause ?: 'failure'}"
         pw.println "---------------"
         urlStack?.reverseEach {
-            def url = it.url.startsWith(baseURL) ? it.url[baseURL.size()..-1] : it.url
+            def url
+            if (it.url.startsWith(baseURL)) {
+                if (it.url == baseURL) {
+                    url = '/'
+                } else {
+                    url = it.url[baseURL.size()..-1]
+                }
+            }
             pw.println "${it.method} ${url} ${it.eventSource}"
         }
         pw.println "---------------"
