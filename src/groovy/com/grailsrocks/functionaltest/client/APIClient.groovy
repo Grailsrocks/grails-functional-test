@@ -28,7 +28,7 @@ class APIClient implements Client {
 
         // Frig the parser registry
         client.parserRegistry = new EvilWizardsKilledByFireIncantationParserRegistry()
-        client.encoders['text/json'] = client.encoders['text/plain']
+//        client.encoders['application/json'] = client.encoders['text/plain']
     }
 
     void clientChanged() {

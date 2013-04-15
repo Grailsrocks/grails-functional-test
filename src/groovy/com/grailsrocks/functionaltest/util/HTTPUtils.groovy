@@ -7,7 +7,7 @@ class HTTPUtils {
         gif: 'image/gif',
         txt: 'text/plain',
         xml: 'text/xml',
-        json: 'text/json'
+        json: 'application/json'
     ]
 
     static boolean isRedirectStatus(code) {

@@ -89,7 +89,7 @@ class RequestBuilder {
             ___setContentTypeIfNotAlreadySet('application/binary')
         } else {
             if (args.json) {
-                ___setContentTypeIfNotAlreadySet('text/json')
+                ___setContentTypeIfNotAlreadySet('application/json')
                 ___data.body = args.json
             } else if (args.xml) {
                 ___data.headers['Content-Type'] = 'text/xml'
