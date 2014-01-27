@@ -150,6 +150,7 @@ class APIClient implements Client {
                         if (n) {
                             responseString += "\r\n and $n more bytes"
                         }
+			response.data.reset()
                         break
                 }
             } else {
