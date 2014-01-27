@@ -30,18 +30,18 @@ grails.project.dependency.resolution = {
 
     dependencies {
         compile( 'org.codehaus.groovy.modules.http-builder:http-builder:0.5.2') {
-            excludes 'groovy', 'xml-apis', 'xerces'
+            excludes 'groovy', 'xml-apis', 'xerces', 'commons-codec'
         }
 
         // HtmlUnit stuff
         compile( "net.sourceforge.htmlunit:htmlunit:$htmlUnitVersion") {
-            excludes 'xml-apis', 'xerces'
+            excludes 'xml-apis', 'xerces', 'commons-codec'
         }
         compile( "net.sourceforge.htmlunit:htmlunit-core-js:$htmlUnitVersion") {
-            excludes 'xml-apis', 'xerces'
+            excludes 'xml-apis', 'xerces', 'commons-codec'
         }
         compile( 'org.apache.httpcomponents:httpclient:4.2.3') {
-            excludes 'xml-apis', 'xerces'
+            excludes 'xml-apis', 'xerces', 'commons-codec'
         }
 
         test( 'commons-codec:commons-codec:1.7') {
