@@ -139,6 +139,9 @@ class APIClient implements Client {
 
                 switch (response.contentType) {
                     case ~'application/json.*':
+                    case ~'application/.*\\+json.*':
+                    case ~'application/xml.*':
+                    case ~'application/.*\\+xml.*':
                     case ~'text/.*':
                         responseString = response.data.text
                         break
