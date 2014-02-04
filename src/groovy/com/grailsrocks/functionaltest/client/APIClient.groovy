@@ -164,6 +164,32 @@ class APIClient implements Client {
                     statusCode: responseStatus)
         } catch (HttpResponseException e) {
             response = e.response
+
+            if (response.data != null) {
+
+                // @todo need to copy the response data first, then mutate it to string also
+                // as RESTClient only lets you read the response once.
+
+                switch (response.contentType) {
+                    case ~'application/json.*':
+                    case ~'text/.*':
+                        responseString = response.data.text
+                        break;
+                    default:
+                        println "yresp is: ${response.data.getClass()}"
+                        byte[] bytes = new byte[100]
+                        response.data.read(bytes)
+                        responseString = "Binary file:\r\n" + new String(bytes, 'utf-8')
+                        def n = response.data.available()
+                        if (n) {
+                            responseString += "\r\n and $n more bytes"
+                        }
+                        break;
+                }
+            } else {
+                responseString = ''
+            }
+
             event = new ContentChangedEvent(
                     client: this,
                     url: this.url,
