@@ -17,9 +17,9 @@
  */
 
 class FunctionalTestGrailsPlugin {
-    def version = "2.0.RC3-SNAPSHOT"
+    def version = "2.0.RC4-SNAPSHOT"
 
-    def grailsVersion = "1.3 > *"
+    def grailsVersion = "2.0 > *"
 
     def loadAfter = ['greenmail', 'fixtures']
 
@@ -29,8 +29,11 @@ class FunctionalTestGrailsPlugin {
     def description = '''Simple 'pure grails' functional testing for your web applications'''
 
     static pluginExcludes = [
-        'file:./grails-app/controllers/com/grailsrocks/functionaltest/controllers/test/**/*.*',
-        'file:./web-app/**/*.*'
+        'grails-app/controllers/**',
+        'grails-app/conf/**',
+        'grails-app/**',
+        'web-app/**',
+        'src/docs/**'
     ]
 
     def documentation = "http://grails.org/plugin/functional-test"
@@ -45,5 +48,5 @@ class FunctionalTestGrailsPlugin {
 
     def issueManagement = [ system: "JIRA", url: "http://jira.grails.org/browse/GPFUNCTIONALTEST" ]
 
-    def scm = [url: "https://github.com/Grailsrocks/grails-functional-test"]
+    def scm = [url: "https://github.com/gpc/grails-functional-test"]
 }
