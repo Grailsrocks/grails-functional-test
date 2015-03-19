@@ -1,16 +1,16 @@
 import com.grailsrocks.functionaltest.APITestCase
 
 class APITests extends APITestCase {
-    String base = 'https://twitter.com/statuses/'
+    String base = 'http://coinabul.com/api.php'
 
     void testHead() {
-        head(base + 'public_timeline.json')
+        head(base)
 
         assertStatus 200
     }
 
     void testGet() {
-        get(base + 'public_timeline.json')
+        get(base)
 
         assertStatus 200
     }
