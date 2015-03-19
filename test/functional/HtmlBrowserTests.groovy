@@ -32,7 +32,7 @@ public class HtmlBrowserTests extends BrowserTestCase {
 
     void testGetWithParametersClosure() {
         get('/selfTest/paramecho') {
-            userName "marc"                   // GPFUNCTIONALTEST-127
+            userName "marc"
             email "marc@somewhere.com"
         }
 
