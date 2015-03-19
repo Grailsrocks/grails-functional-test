@@ -273,24 +273,24 @@ class BrowserTestCase extends TestCaseBase {
     }
 
     void assertCookieExistsInDomain(String cookieName, String domain) {
-        def domainCookies = client.cookieManager.getCookies(cookieName)
+        def domainCookies = client.cookieManager.getCookies(new URL(domain))
         if (!domainCookies) {
             def cookieList = (client.cookieManager.cookies.collect { it.name }).join(',')
 	        throw new AssertionFailedError("There are no cookies for domain $domain")
         }
-        assertTrue domainCookies.find { it.name == cookieName }
+        assertTrue domainCookies.any { it.name == cookieName }
     }
 
     void assertCookieContains(String cookieName, String value) {
         assertCookieExists(cookieName)
         def v = client.cookieManager.getCookie(cookieName)
-        assertTrue stripWS(v.toLowerCase()).contains(stripWS(value?.toLowerCase()))
+        assertTrue stripWS(v?.value.toLowerCase()).contains(stripWS(value?.toLowerCase()))
     }
 
     void assertCookieContainsStrict(String cookieName, String value) {
         assertCookieExists(cookieName)
         def v = client.cookieManager.getCookie(cookieName)
-        assertTrue v.contains(value)
+        assertTrue v?.value.contains(value)
     }
 
 	void assertElementTextContains(String id, String expected) {

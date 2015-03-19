@@ -57,6 +57,12 @@ grails.project.dependency.resolution = {
         test( 'commons-codec:commons-codec:1.7') {
             excludes 'xml-apis', 'xerces'
         }
+        // "compile" scope is needed for generating the dependency in the plugin's pom.xml; without this dependency,
+        // projects using this plugin might suffer from nasty version conflicts, leading to the infamous SAXNotRecognizedException
+        compile( 'net.sourceforge.nekohtml:nekohtml:1.9.18') {
+            excludes 'xml-apis', 'xerces'
+        }
+        // "build" scope is needed for running this plugin's tests; without this dependency, all HTML related tests fail.
         build( 'net.sourceforge.nekohtml:nekohtml:1.9.18') {
             excludes 'xml-apis', 'xerces'
         }
