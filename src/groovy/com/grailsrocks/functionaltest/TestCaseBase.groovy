@@ -386,7 +386,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
 	}
 
 	void assertHeaderContainsStrict(String header, String expected) {
-        def respHeader = stripWSclient.getResponseHeader(header)
+        def respHeader = client.getResponseHeader(header)
 	    assertTrue "Expected header [$header] to strictly match [${expected}] but it was [${respHeader}]", respHeader?.contains(expected)
 	}
 
