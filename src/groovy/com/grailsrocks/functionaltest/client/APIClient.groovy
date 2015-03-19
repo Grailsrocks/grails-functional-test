@@ -139,6 +139,9 @@ class APIClient implements Client {
 
                 switch (response.contentType) {
                     case ~'application/json.*':
+                    case ~'application/.*\\+json.*':
+                    case ~'application/xml.*':
+                    case ~'application/.*\\+xml.*':
                     case ~'text/.*':
                         responseString = response.data.text
                         break
@@ -150,6 +153,7 @@ class APIClient implements Client {
                         if (n) {
                             responseString += "\r\n and $n more bytes"
                         }
+			response.data.reset()
                         break
                 }
             } else {
