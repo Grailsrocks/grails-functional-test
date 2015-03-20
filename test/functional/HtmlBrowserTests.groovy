@@ -67,7 +67,7 @@ public class HtmlBrowserTests extends BrowserTestCase {
         assertHeaderStrict('Server', 'Apache-Coyote/1.1')
         assertHeaderStrict('Content-Type', 'text/html;charset=utf-8')
         assertHeaderContains('Date', new Date().format("EEE, d MMM yyyy"))
-        assertHeaderContainsStrict('Date', new Date().format("EEE, d MMM yyyy"))  // GPFUNCTIONALTEST-128
+        assertHeaderContainsStrict('Date', new Date().format("EEE, d MMM yyyy"))
     }
 
     void testContentType() {
