@@ -30,7 +30,10 @@ target (createFunctionalTest: "Creates a new Grails functional test.") {
 
     grailsConsole.updateStatus "Creating test"
     String superClass = "functionaltestplugin.FunctionalTestCase"
-    createArtifact(name: argsMap["params"][0], suffix: "FunctionalTests", type: "FunctionalTest", path: "test/functional", superClass: superClass)
+    for (name in argsMap["params"]) {
+        createArtifact(name: name, suffix: "FunctionalTests", type: "FunctionalTest", path: "test/functional", superClass: superClass)
+    }
+
 }
 
 setDefaultTarget createFunctionalTest
