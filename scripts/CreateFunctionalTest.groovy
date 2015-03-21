@@ -37,3 +37,11 @@ target (createFunctionalTest: "Creates a new Grails functional test.") {
 }
 
 setDefaultTarget createFunctionalTest
+
+USAGE = """
+    create-functional-test [NAME]
+
+where
+    NAME       = The name of the test ('FunctionalTest' will be appended).
+                 If not provided, this command will ask you for the name.
+"""
