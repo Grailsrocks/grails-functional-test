@@ -26,8 +26,22 @@ includeTargets << grailsScript("_GrailsCreateArtifacts")
 target (createFunctionalTest: "Creates a new Grails functional test.") {
     depends( checkVersion, parseArguments )
 
+    promptForName(type: "Functional test")
+
+    grailsConsole.updateStatus "Creating test"
     String superClass = "functionaltestplugin.FunctionalTestCase"
-    createArtifact(name: argsMap["params"][0], suffix: "FunctionalTests", type: "FunctionalTest", path: "test/functional", superClass: superClass)
+    for (name in argsMap["params"]) {
+        createArtifact(name: name, suffix: "FunctionalTests", type: "FunctionalTest", path: "test/functional", superClass: superClass)
+    }
+
 }
 
 setDefaultTarget createFunctionalTest
+
+USAGE = """
+    create-functional-test [NAME]
+
+where
+    NAME       = The name of the test ('FunctionalTest' will be appended).
+                 If not provided, this command will ask you for the name.
+"""
