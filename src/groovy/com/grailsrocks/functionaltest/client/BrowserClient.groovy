@@ -88,6 +88,14 @@ class BrowserClient implements Client, WebWindowListener, HtmlAttributeChangeLis
         _client.popupBlockerEnabled
     }
 
+    com.gargoylesoftware.htmlunit.CookieManager getCookieManager() {
+        _client.cookieManager
+    }
+
+    Set getCookies(URL url) {
+        _client.getCookies(url)
+    }
+
     String getRequestBody() {
         if (settings?.requestBody != null) {
             return settings.requestBody

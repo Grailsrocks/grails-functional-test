@@ -9,6 +9,16 @@ grailsSettings.testDependencies.addAll xmlJars
 
 grails.project.work.dir = 'target'
 
+forkConfig = false
+grails.project.fork = [
+    test:    forkConfig, // configure settings for the test-app JVM
+    run:     forkConfig, // configure settings for the run-app JVM
+    war:     forkConfig, // configure settings for the run-war JVM
+    console: forkConfig, // configure settings for the Swing console JVM
+    compile: forkConfig  // configure settings for compilation
+]
+
+grails.project.dependency.resolver = "maven"
 grails.project.dependency.resolution = {
     inherits("global") {
         // uncomment to disable ehcache
@@ -30,24 +40,30 @@ grails.project.dependency.resolution = {
 
     dependencies {
         compile( 'org.codehaus.groovy.modules.http-builder:http-builder:0.5.2') {
-            excludes 'groovy', 'xml-apis', 'xerces'
+            excludes 'groovy', 'xml-apis', 'xerces', 'commons-codec'
         }
 
         // HtmlUnit stuff
         compile( "net.sourceforge.htmlunit:htmlunit:$htmlUnitVersion") {
-            excludes 'xml-apis', 'xerces'
+            excludes 'xml-apis', 'xerces', 'commons-codec'
         }
         compile( "net.sourceforge.htmlunit:htmlunit-core-js:$htmlUnitVersion") {
-            excludes 'xml-apis', 'xerces'
+            excludes 'xml-apis', 'xerces', 'commons-codec'
         }
         compile( 'org.apache.httpcomponents:httpclient:4.2.3') {
-            excludes 'xml-apis', 'xerces'
+            excludes 'xml-apis', 'xerces', 'commons-codec'
         }
 
         test( 'commons-codec:commons-codec:1.7') {
             excludes 'xml-apis', 'xerces'
         }
-        test( 'net.sourceforge.nekohtml:nekohtml:1.9.18') {
+        // "compile" scope is needed for generating the dependency in the plugin's pom.xml; without this dependency,
+        // projects using this plugin might suffer from nasty version conflicts, leading to the infamous SAXNotRecognizedException
+        compile( 'net.sourceforge.nekohtml:nekohtml:1.9.18') {
+            excludes 'xml-apis', 'xerces'
+        }
+        // "build" scope is needed for running this plugin's tests; without this dependency, all HTML related tests fail.
+        build( 'net.sourceforge.nekohtml:nekohtml:1.9.18') {
             excludes 'xml-apis', 'xerces'
         }
         test( 'net.sourceforge.cssparser:cssparser:0.9.9') {
@@ -68,7 +84,10 @@ grails.project.dependency.resolution = {
     }
 
     plugins {
-        build( ":tomcat:$grailsVersion", ':release:2.2.1', ':rest-client-builder:1.0.3' ) {
+        build(':release:3.0.1', ':rest-client-builder:1.0.3', ':tomcat:7.0.52.1') {
+            export = false
+        }
+        runtime ":hibernate:3.6.10.13", {
             export = false
         }
     }

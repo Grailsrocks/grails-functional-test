@@ -386,7 +386,7 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
 	}
 
 	void assertHeaderContainsStrict(String header, String expected) {
-        def respHeader = stripWSclient.getResponseHeader(header)
+        def respHeader = client.getResponseHeader(header)
 	    assertTrue "Expected header [$header] to strictly match [${expected}] but it was [${respHeader}]", respHeader?.contains(expected)
 	}
 
@@ -426,12 +426,14 @@ abstract class TestCaseBase extends GroovyTestCase implements GroovyInterceptabl
     }
 */
     JSONElement getJSON() {
-        assertContentType contentTypeForJSON
+	def contentType = stripWS(client.responseContentType.toLowerCase())
+        assertTrue "Expected content type to contain json [${contentType}]", contentType.contains("json")
         grails.converters.JSON.parse(client.responseAsString)
     }
 
     GPathResult getXML() {
-        assertContentType contentTypeForXML
+	def contentType = stripWS(client.responseContentType.toLowerCase())
+        assertTrue "Expected content type to contain xml [${contentType}]", contentType.contains("xml")
         grails.converters.XML.parse(client.responseAsString)
     }
 

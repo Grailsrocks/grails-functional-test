@@ -3,7 +3,7 @@
 .settings
 /docs
 /test/reports
-/web-app
 target
 plugin.xml
 grails-functional-test*.zip
+grails-functional-test*.zip.sha1
